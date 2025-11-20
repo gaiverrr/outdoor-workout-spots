@@ -66,8 +66,8 @@ export default function RootLayout({
           {/* Top Navigation */}
           <header className="sticky top-0 z-50 glass border-b border-neon-cyan/20">
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-              <h1 className="text-xl font-bold uppercase tracking-wider text-glow-cyan">
-                <span className="bg-gradient-neon-horizontal bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold uppercase tracking-wider">
+                <span className="text-neon-cyan">
                   Outdoor Workout Spots
                 </span>
               </h1>
