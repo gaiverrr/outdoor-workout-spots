@@ -51,12 +51,6 @@
   --spacing-safe-bottom: env(safe-area-inset-bottom);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 html {
   /* Prevent text size adjustment on mobile */
   -webkit-text-size-adjust: 100%;
