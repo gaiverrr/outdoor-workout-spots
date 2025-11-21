@@ -10,21 +10,17 @@ function KettlebellModel() {
 
     useFrame((state, delta) => {
         if (meshRef.current) {
-            // Chaotic rotation
-            meshRef.current.rotation.x += delta * 0.5;
-            meshRef.current.rotation.y += delta * 0.3;
-            meshRef.current.rotation.z += delta * 0.2;
-
-            // Add some wobble
-            const time = state.clock.elapsedTime;
-            meshRef.current.position.y = Math.sin(time * 2) * 0.1;
+            // Smooth, floating rotation
+            meshRef.current.rotation.y += delta * 0.5;
+            meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.3;
+            meshRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 0.3) * 0.2;
         }
     });
 
     return (
         <group ref={meshRef} scale={1.5}>
             {/* Main Body - Sphere */}
-            <mesh position={[0, -0.4, 0]}>
+            <mesh position={[0, -0.5, 0]}>
                 <sphereGeometry args={[1, 32, 32]} />
                 <MeshDistortMaterial
                     color="#ff00ff"
@@ -32,15 +28,14 @@ function KettlebellModel() {
                     emissiveIntensity={0.5}
                     roughness={0.2}
                     metalness={0.8}
-                    distort={0.3}
+                    distort={0.2}
                     speed={2}
                 />
             </mesh>
 
             {/* Handle - Torus */}
-            {/* Positioned directly on top, rotated to be upright */}
-            <mesh position={[0, 0.4, 0]}>
-                <torusGeometry args={[0.7, 0.15, 16, 32]} />
+            <mesh position={[0, 0.6, 0]}>
+                <torusGeometry args={[0.6, 0.12, 16, 32]} />
                 <meshStandardMaterial
                     color="#00f0ff"
                     emissive="#00a0aa"
@@ -50,28 +45,38 @@ function KettlebellModel() {
                 />
             </mesh>
 
+            {/* Handle Connectors */}
+            <mesh position={[-0.45, 0.4, 0]} rotation={[0, 0, 0.2]}>
+                <cylinderGeometry args={[0.12, 0.15, 0.6, 16]} />
+                <meshStandardMaterial color="#00f0ff" metalness={1} roughness={0.2} />
+            </mesh>
+            <mesh position={[0.45, 0.4, 0]} rotation={[0, 0, -0.2]}>
+                <cylinderGeometry args={[0.12, 0.15, 0.6, 16]} />
+                <meshStandardMaterial color="#00f0ff" metalness={1} roughness={0.2} />
+            </mesh>
+
             {/* Face Eyes */}
-            <mesh position={[-0.3, -0.2, 0.85]}>
+            <mesh position={[-0.3, -0.2, 1.0]}>
                 <sphereGeometry args={[0.15, 16, 16]} />
                 <meshStandardMaterial color="white" />
             </mesh>
-            <mesh position={[0.3, -0.2, 0.85]}>
+            <mesh position={[0.3, -0.2, 1.0]}>
                 <sphereGeometry args={[0.15, 16, 16]} />
                 <meshStandardMaterial color="white" />
             </mesh>
 
             {/* Pupils */}
-            <mesh position={[-0.3, -0.2, 0.98]}>
+            <mesh position={[-0.3, -0.2, 1.12]}>
                 <sphereGeometry args={[0.05, 16, 16]} />
                 <meshStandardMaterial color="black" />
             </mesh>
-            <mesh position={[0.3, -0.2, 0.98]}>
+            <mesh position={[0.3, -0.2, 1.12]}>
                 <sphereGeometry args={[0.05, 16, 16]} />
                 <meshStandardMaterial color="black" />
             </mesh>
 
             {/* Smile */}
-            <mesh position={[0, -0.5, 0.85]} rotation={[0, 0, Math.PI]}>
+            <mesh position={[0, -0.5, 1.0]} rotation={[0, 0, Math.PI]}>
                 <torusGeometry args={[0.3, 0.05, 16, 32, Math.PI]} />
                 <meshStandardMaterial color="white" />
             </mesh>
