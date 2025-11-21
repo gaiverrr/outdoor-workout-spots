@@ -9,7 +9,7 @@ export default function SpotNotFound() {
           <span className="text-glow-magenta">Spot Not Found</span>
         </h1>
         <p className="text-text-secondary mb-6">
-          The workout spot you're looking for doesn't exist or has been removed.
+          The workout spot you&apos;re looking for doesn&apos;t exist or has been removed.
         </p>
         <Link
           href="/"

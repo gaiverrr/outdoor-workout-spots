@@ -53,8 +53,8 @@ export function useUserLocation(): UseUserLocationResult {
 
   // Auto-request location on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     requestLocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
