@@ -2,21 +2,47 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { isWebGLAvailable } from "@/lib/webgl";
+import { ThreeDErrorBoundary } from "@/components/ErrorBoundary";
 import ThreeDKettlebell from "./ThreeDKettlebell";
+
+interface FloatingItemConfig {
+  id: string;
+  item: React.ReactNode;
+  initialX: number;
+  initialY: number;
+  duration: number;
+  delay: number;
+}
 
 const FloatingItem = ({
     children,
     initialX,
     initialY,
     duration,
-    delay
+    delay,
+    prefersReducedMotion,
 }: {
     children: React.ReactNode;
     initialX: number;
     initialY: number;
     duration: number;
     delay: number;
+    prefersReducedMotion: boolean;
 }) => {
+    // If user prefers reduced motion, show static item
+    if (prefersReducedMotion) {
+        return (
+            <div
+                className="absolute text-neon-purple/20 pointer-events-none"
+                style={{ left: initialX, top: initialY, opacity: 0.3 }}
+            >
+                {children}
+            </div>
+        );
+    }
+
     return (
         <motion.div
             className="absolute text-neon-purple/20 pointer-events-none"
@@ -38,13 +64,12 @@ const FloatingItem = ({
     );
 };
 
-
-
 export default function FloatingBackground() {
     const [mounted, setMounted] = useState(false);
+    const prefersReducedMotion = useReducedMotion();
 
-    // Generate random positions for background items (lazy initialization to avoid impure function calls during render)
-    const [itemsWithPositions] = useState(() => {
+    // Generate random positions for background items with stable IDs
+    const [itemsWithPositions] = useState<FloatingItemConfig[]>(() => {
         const items = [
             // Dumbbell
             <svg key="db1" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h12v2H6V5zm0 12h12v2H6v-2zm-4-9h2v8H2V8zm18 0h2v8h-2V8zM7 8h10v8H7V8z" /></svg>,
@@ -57,7 +82,8 @@ export default function FloatingBackground() {
         const width = typeof window !== 'undefined' ? window.innerWidth : 1000;
         const height = typeof window !== 'undefined' ? window.innerHeight : 1000;
 
-        return items.map((item) => ({
+        return items.map((item, index) => ({
+            id: `floating-item-${index}`, // Stable ID for React key
             item,
             initialX: Math.random() * width,
             initialY: Math.random() * height,
@@ -73,22 +99,37 @@ export default function FloatingBackground() {
 
     if (!mounted) return null;
 
+    // If user prefers reduced motion, don't show animations at all
+    if (prefersReducedMotion) {
+        return null;
+    }
+
+    // Check WebGL availability for 3D content
+    const hasWebGL = isWebGLAvailable();
+
     return (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-            {itemsWithPositions.map((config, i) => (
+            {itemsWithPositions.map((config) => (
                 <FloatingItem
-                    key={i}
+                    key={config.id}
                     initialX={config.initialX}
                     initialY={config.initialY}
                     duration={config.duration}
                     delay={config.delay}
+                    prefersReducedMotion={prefersReducedMotion}
                 >
                     {config.item}
                 </FloatingItem>
             ))}
-            <div className="fixed bottom-0 right-0 z-0 pointer-events-none opacity-80">
-                <ThreeDKettlebell />
-            </div>
+
+            {/* Only render 3D kettlebell if WebGL is available */}
+            {hasWebGL && (
+                <ThreeDErrorBoundary>
+                    <div className="fixed bottom-0 right-0 z-0 pointer-events-none opacity-80">
+                        <ThreeDKettlebell />
+                    </div>
+                </ThreeDErrorBoundary>
+            )}
         </div>
     );
 }

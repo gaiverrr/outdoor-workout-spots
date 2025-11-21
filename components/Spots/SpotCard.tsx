@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 import { formatDistance } from "@/lib/distance";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface SpotCardProps {
   spot: SpotWithDistance;
@@ -16,14 +17,21 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
   const equipment = spot.details?.equipment || [];
   const equipmentToShow = equipment.slice(0, 5);
   const hasMoreEquipment = equipment.length > 5;
+  const prefersReducedMotion = useReducedMotion();
+
+  // Wrapper component - either motion.div or regular div based on user preference
+  const Wrapper = prefersReducedMotion ? 'div' : motion.div;
+  const wrapperProps = prefersReducedMotion
+    ? { className: "h-full" }
+    : {
+        whileHover: { scale: 1.05, rotate: 2 },
+        whileTap: { scale: 0.95, rotate: -2 },
+        transition: { type: "spring", stiffness: 400, damping: 17 },
+        className: "h-full"
+      };
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.05, rotate: 2 }}
-      whileTap={{ scale: 0.95, rotate: -2 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      className="h-full"
-    >
+    <Wrapper {...wrapperProps}>
       <Link
         href={`/spots/${spot.id}`}
         className={`
@@ -105,6 +113,6 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
           </div>
         )}
       </Link>
-    </motion.div>
+    </Wrapper>
   );
 }

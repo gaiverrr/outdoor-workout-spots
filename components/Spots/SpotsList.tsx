@@ -3,6 +3,7 @@
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 import { motion } from "framer-motion";
 import { SpotCard } from "./SpotCard";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface SpotsListProps {
   spots: SpotWithDistance[];
@@ -19,6 +20,8 @@ export function SpotsList({
   loading,
   error,
 }: SpotsListProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   if (loading) {
     return (
       <div className="space-y-4 md:space-y-5 lg:space-y-6">
@@ -58,6 +61,23 @@ export function SpotsList({
         <p className="text-text-dim text-sm md:text-base">
           Try adjusting your search or filters
         </p>
+      </div>
+    );
+  }
+
+  // If user prefers reduced motion, use regular divs instead of motion.divs
+  if (prefersReducedMotion) {
+    return (
+      <div className="space-y-4 md:space-y-5 lg:space-y-6">
+        {spots.map((spot) => (
+          <div key={spot.id}>
+            <SpotCard
+              spot={spot}
+              isSelected={spot.id === selectedSpotId}
+              onClick={() => onSelectSpot?.(spot.id)}
+            />
+          </div>
+        ))}
       </div>
     );
   }
