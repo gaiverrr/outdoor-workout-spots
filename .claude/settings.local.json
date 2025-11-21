@@ -8,7 +8,19 @@
       "Bash(magick:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(gh pr create:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(for img in /Users/yuriy.kaygorodov/Projects/outdoor-workout-spots/real-data/images/100/image_0.webp /Users/yuriy.kaygorodov/Projects/outdoor-workout-spots/real-data/images/1855/image_0.webp /Users/yuriy.kaygorodov/Projects/outdoor-workout-spots/real-data/images/1069/image_0.webp)",
+      "Bash(do file $img)",
+      "Bash(done)",
+      "Bash(identify:*)",
+      "Bash(xargs identify:*)",
+      "Bash(chmod:*)",
+      "Bash(for img in 100/*.webp)",
+      "Bash(do magick \"$img\" -resize \"800x800>\" -quality 80 \"$img.opt.webp\")",
+      "Bash(brew install:*)",
+      "Bash(parallel:*)",
+      "Bash(xargs ls -lh)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

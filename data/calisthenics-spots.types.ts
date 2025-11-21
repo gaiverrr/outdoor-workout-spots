@@ -1,12 +1,12 @@
 export interface CalisthenicsSpotDetails {
-  equipment: string[];
-  disciplines: string[];
-  description: string;
-  features: {
+  equipment?: string[];
+  disciplines?: string[];
+  description?: string;
+  features?: {
     type: string;
   };
-  images: string[];
-  rating: number;
+  images?: string[];
+  rating?: number;
 }
 
 export interface CalisthenicsSpot {
