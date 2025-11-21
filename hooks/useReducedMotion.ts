@@ -26,18 +26,9 @@ export function useReducedMotion(): boolean {
       setPrefersReducedMotion(event.matches);
     };
 
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', listener);
-      return () => mediaQuery.removeEventListener('change', listener);
-    }
-    // Fallback for older browsers
-    else {
-      // @ts-expect-error - addListener is deprecated but needed for older browsers
-      mediaQuery.addListener(listener);
-      // @ts-expect-error - removeListener is deprecated but needed for older browsers
-      return () => mediaQuery.removeListener(listener);
-    }
+    // Add event listener for media query changes
+    mediaQuery.addEventListener('change', listener);
+    return () => mediaQuery.removeEventListener('change', listener);
   }, []);
 
   return prefersReducedMotion;

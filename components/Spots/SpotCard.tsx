@@ -19,30 +19,18 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
   const hasMoreEquipment = equipment.length > 5;
   const prefersReducedMotion = useReducedMotion();
 
-  // Wrapper component - either motion.div or regular div based on user preference
-  const Wrapper = prefersReducedMotion ? 'div' : motion.div;
-  const wrapperProps = prefersReducedMotion
-    ? { className: "h-full" }
-    : {
-        whileHover: { scale: 1.05, rotate: 2 },
-        whileTap: { scale: 0.95, rotate: -2 },
-        transition: { type: "spring", stiffness: 400, damping: 17 },
-        className: "h-full"
-      };
-
-  return (
-    <Wrapper {...wrapperProps}>
-      <Link
-        href={`/spots/${spot.id}`}
-        className={`
-          block glass p-4 md:p-5 lg:p-6 rounded-xl border transition-colors duration-300 h-full
-          ${isSelected
-            ? "border-neon-magenta border-glow-magenta bg-neon-magenta/5"
-            : "border-neon-cyan/20 hover:border-neon-cyan/40"
-          }
-        `}
-        onClick={onClick}
-      >
+  const cardContent = (
+    <Link
+      href={`/spots/${spot.id}`}
+      className={`
+        block glass p-4 md:p-5 lg:p-6 rounded-xl border transition-colors duration-300 h-full
+        ${isSelected
+          ? "border-neon-magenta border-glow-magenta bg-neon-magenta/5"
+          : "border-neon-cyan/20 hover:border-neon-cyan/40"
+        }
+      `}
+      onClick={onClick}
+    >
         {/* Header: Title and Distance */}
         <div className="flex justify-between items-start gap-4 mb-3">
           <div className="flex-1 min-w-0">
@@ -113,6 +101,21 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
           </div>
         )}
       </Link>
-    </Wrapper>
+    );
+
+  // Conditional wrapper based on reduced motion preference
+  if (prefersReducedMotion) {
+    return <div className="h-full">{cardContent}</div>;
+  }
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05, rotate: 2 }}
+      whileTap={{ scale: 0.95, rotate: -2 }}
+      transition={{ type: "spring" as const, stiffness: 400, damping: 17 }}
+      className="h-full"
+    >
+      {cardContent}
+    </motion.div>
   );
 }
