@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RegisterServiceWorker } from "./register-sw";
+import FloatingBackgroundLoader from "@/components/UI/FloatingBackgroundLoader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -61,8 +62,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
       <body className="antialiased h-full">
+        <FloatingBackgroundLoader />
         <RegisterServiceWorker />
-        <div className="grid grid-rows-[auto_1fr] h-dvh">
+        <div className="grid grid-rows-[auto_1fr] h-dvh relative z-10">
           {/* Top Navigation - Auto height */}
           <header className="sticky top-0 z-50 glass border-b border-neon-cyan/20">
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">

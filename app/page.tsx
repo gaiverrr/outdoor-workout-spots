@@ -82,7 +82,7 @@ export default function Home() {
         </section>
 
         {/* Spots List Section - Flows naturally on mobile, scrollable column on desktop */}
-        <section className="flex-shrink-0 md:h-full md:overflow-y-auto bg-app p-4 md:p-6 lg:p-8">
+        <section className="flex-shrink-0 md:h-full md:overflow-y-auto p-4 md:p-6 lg:p-8">
           <div className="container mx-auto max-w-4xl">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-text-primary">

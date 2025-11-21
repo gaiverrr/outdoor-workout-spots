@@ -6,7 +6,9 @@
       "Bash(npm run build:*)",
       "Bash(convert -version:*)",
       "Bash(magick:*)",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(gh pr create:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []
