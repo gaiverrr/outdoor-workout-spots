@@ -33,70 +33,78 @@ export default function Home() {
   });
 
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Search Bar Section */}
-      <section className="bg-surface border-b border-neon-magenta/20 p-4">
-        <div className="container mx-auto">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
-        </div>
-      </section>
-
-      {/* Quick Filters */}
-      <section className="bg-surface border-b border-neon-magenta/20 p-4">
-        <div className="container mx-auto">
-          <QuickFilters filters={filters} onChange={setFilters} />
-        </div>
-      </section>
-
-      {/* Location Status Banner */}
-      {locationStatus === "loading" && (
-        <div className="bg-neon-cyan/10 border-b border-neon-cyan/30 px-4 py-2">
-          <p className="text-sm text-neon-cyan text-center font-mono">
-            📍 Getting your location...
-          </p>
-        </div>
-      )}
-      {locationStatus === "denied" && (
-        <div className="bg-neon-magenta/10 border-b border-neon-magenta/30 px-4 py-2">
-          <p className="text-sm text-neon-magenta text-center font-mono">
-            ⚠️ Location access denied - showing all spots
-          </p>
-        </div>
-      )}
-
-      {/* Map Section */}
-      <section className="h-[50vh] bg-elevated border-b border-neon-cyan/20 relative overflow-hidden">
-        <SpotsMap
-          spots={filteredSpots}
-          userLocation={userLocation}
-          selectedSpotId={selectedSpotId}
-          onSelectSpot={setSelectedSpotId}
-        />
-      </section>
-
-      {/* Spots List Section */}
-      <section className="flex-1 overflow-y-auto bg-app p-4">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-text-primary">
-              <span className="text-glow-magenta">
-                {userLocation ? "Nearby Spots" : "All Spots"}
-              </span>
-            </h2>
-            <span className="text-sm font-mono text-text-secondary">
-              {filteredSpots.length} {filteredSpots.length === 1 ? "spot" : "spots"}
-            </span>
+    <div className="h-full grid grid-rows-[auto_1fr]">
+      {/* Header: Search Bar, Filters, Status - Auto height */}
+      <header className="bg-surface border-b border-neon-magenta/20">
+        {/* Search Bar Section */}
+        <div className="border-b border-neon-magenta/20 p-4">
+          <div className="container mx-auto max-w-7xl">
+            <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
+        </div>
 
-          <SpotsList
+        {/* Quick Filters */}
+        <div className="border-b border-neon-magenta/20 p-4">
+          <div className="container mx-auto max-w-7xl">
+            <QuickFilters filters={filters} onChange={setFilters} />
+          </div>
+        </div>
+
+        {/* Location Status Banner */}
+        {locationStatus === "loading" && (
+          <div className="bg-neon-cyan/10 border-b border-neon-cyan/30 px-4 py-2">
+            <p className="text-sm text-neon-cyan text-center font-mono">
+              📍 Getting your location...
+            </p>
+          </div>
+        )}
+        {locationStatus === "denied" && (
+          <div className="bg-neon-magenta/10 border-b border-neon-magenta/30 px-4 py-2">
+            <p className="text-sm text-neon-magenta text-center font-mono">
+              ⚠️ Location access denied - showing all spots
+            </p>
+          </div>
+        )}
+      </header>
+
+      {/* Main Content: Responsive Grid Layout - Takes remaining 1fr height */}
+      {/* Mobile: Stacked vertically with natural scroll (map 50vh, list below) */}
+      {/* Tablet/Desktop: Side-by-side with fixed map and scrollable list */}
+      <div className="overflow-y-auto md:overflow-hidden flex flex-col md:grid md:grid-cols-2 lg:grid-cols-[3fr_2fr] xl:grid-cols-[11fr_9fr]">
+        {/* Map Section - 50vh on mobile, full height on desktop */}
+        <section className="h-[50vh] md:h-full flex-shrink-0 bg-elevated border-b md:border-b-0 md:border-r border-neon-cyan/20 relative overflow-hidden">
+          <SpotsMap
             spots={filteredSpots}
+            userLocation={userLocation}
             selectedSpotId={selectedSpotId}
             onSelectSpot={setSelectedSpotId}
-            loading={spotsLoading}
-            error={spotsError}
           />
-        </div>
-      </section>
+        </section>
+
+        {/* Spots List Section - Flows naturally on mobile, scrollable column on desktop */}
+        <section className="flex-shrink-0 md:h-full md:overflow-y-auto bg-app p-4 md:p-6 lg:p-8">
+          <div className="container mx-auto max-w-4xl">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
+                <span className="text-glow-magenta">
+                  {userLocation ? "Nearby Spots" : "All Spots"}
+                </span>
+              </h2>
+              <span className="text-sm md:text-base font-mono text-text-secondary">
+                {filteredSpots.length} {filteredSpots.length === 1 ? "spot" : "spots"}
+              </span>
+            </div>
+
+            <SpotsList
+              spots={filteredSpots}
+              selectedSpotId={selectedSpotId}
+              onSelectSpot={setSelectedSpotId}
+              loading={spotsLoading}
+              error={spotsError}
+            />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

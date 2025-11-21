@@ -11,13 +11,16 @@ export interface SpotCardProps {
 }
 
 export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
-  const equipment = spot.details?.equipment.slice(0, 3) || [];
+  // Show more equipment on larger screens
+  const equipment = spot.details?.equipment || [];
+  const equipmentToShow = equipment.slice(0, 5);
+  const hasMoreEquipment = equipment.length > 5;
 
   return (
     <Link
       href={`/spots/${spot.id}`}
       className={`
-        block glass p-4 rounded-xl border transition-all duration-300
+        block glass p-4 md:p-5 lg:p-6 rounded-xl border transition-all duration-300
         card-tilt hover:scale-[1.02] cursor-pointer
         ${
           isSelected
@@ -27,13 +30,14 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
       `}
       onClick={onClick}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex-1 min-w-0 pr-3">
-          <h3 className="text-lg font-bold text-text-primary truncate mb-1">
+      {/* Header: Title and Distance */}
+      <div className="flex justify-between items-start gap-4 mb-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg md:text-xl font-bold text-text-primary truncate mb-1">
             {spot.title}
           </h3>
           {spot.name && spot.name !== spot.title && (
-            <p className="text-xs text-text-dim truncate">{spot.name}</p>
+            <p className="text-xs md:text-sm text-text-dim truncate">{spot.name}</p>
           )}
         </div>
 
@@ -42,7 +46,7 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
           <div className="flex-shrink-0">
             <span
               className={`
-              px-2 py-1 rounded text-xs font-mono font-bold
+              px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg text-xs md:text-sm font-mono font-bold
               ${
                 isSelected
                   ? "bg-neon-magenta/30 border border-neon-magenta text-neon-magenta"
@@ -58,25 +62,25 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
 
       {/* Address */}
       {spot.address && (
-        <p className="text-text-secondary text-sm mb-3 line-clamp-2">
+        <p className="text-text-secondary text-sm md:text-base mb-4 line-clamp-2 md:line-clamp-1 lg:line-clamp-2">
           {spot.address}
         </p>
       )}
 
-      {/* Equipment chips */}
-      {equipment.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
-          {equipment.map((item, index) => (
+      {/* Equipment chips - responsive grid */}
+      {equipmentToShow.length > 0 && (
+        <div className="flex gap-2 flex-wrap mb-3">
+          {equipmentToShow.map((item, index) => (
             <span
               key={`${item}-${index}`}
-              className="px-2 py-1 bg-neon-purple/10 border border-neon-purple/30 rounded-full text-xs text-neon-purple"
+              className="px-2.5 py-1.5 md:px-3 md:py-2 bg-neon-purple/10 border border-neon-purple/30 rounded-full text-xs md:text-sm text-neon-purple font-medium"
             >
               {item}
             </span>
           ))}
-          {(spot.details?.equipment.length || 0) > 3 && (
-            <span className="px-2 py-1 text-xs text-text-dim">
-              +{(spot.details?.equipment.length || 0) - 3} more
+          {hasMoreEquipment && (
+            <span className="px-2.5 py-1.5 md:px-3 md:py-2 text-xs md:text-sm text-text-dim font-medium">
+              +{equipment.length - 5} more
             </span>
           )}
         </div>
@@ -84,14 +88,14 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
 
       {/* Rating indicator */}
       {spot.details?.rating != null && (
-        <div className="mt-3 flex items-center gap-2">
-          <div className="flex-1 h-1.5 bg-elevated rounded-full overflow-hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-2 md:h-2.5 bg-elevated rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-neon-horizontal"
+              className="h-full bg-gradient-neon-horizontal transition-all duration-500"
               style={{ width: `${spot.details.rating}%` }}
             />
           </div>
-          <span className="text-xs font-mono text-text-secondary">
+          <span className="text-xs md:text-sm font-mono text-text-secondary font-bold">
             {spot.details.rating}
           </span>
         </div>

@@ -59,11 +59,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="antialiased">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+      <body className="antialiased h-full">
         <RegisterServiceWorker />
-        <div className="flex flex-col min-h-screen min-h-dvh">
-          {/* Top Navigation */}
+        <div className="grid grid-rows-[auto_1fr] h-dvh">
+          {/* Top Navigation - Auto height */}
           <header className="sticky top-0 z-50 glass border-b border-neon-cyan/20">
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">
               <h1 className="text-xl font-bold uppercase tracking-wider">
@@ -77,8 +77,8 @@ export default function RootLayout({
             </div>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 flex flex-col">
+          {/* Main Content - Takes remaining 1fr of viewport height */}
+          <main className="overflow-hidden">
             {children}
           </main>
         </div>
