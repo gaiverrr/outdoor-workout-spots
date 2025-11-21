@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import ThreeDKettlebell from "./ThreeDKettlebell";
 
 const FloatingItem = ({
     children,
@@ -37,36 +38,7 @@ const FloatingItem = ({
     );
 };
 
-const FunnyRotatingObject = () => {
-    return (
-        <motion.div
-            className="fixed bottom-10 right-10 z-0 opacity-30 pointer-events-none text-neon-magenta"
-            animate={{
-                rotate: 360,
-            }}
-            transition={{
-                duration: 20,
-                repeat: Infinity,
-                ease: "linear",
-            }}
-        >
-            {/* Kettlebell with a face */}
-            <svg width="200" height="200" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
-                {/* Handle */}
-                <path d="M30 30 C30 10, 70 10, 70 30" />
-                {/* Body */}
-                <circle cx="50" cy="60" r="30" fill="currentColor" fillOpacity="0.1" />
-                {/* Eyes */}
-                <circle cx="40" cy="55" r="3" fill="currentColor" />
-                <circle cx="60" cy="55" r="3" fill="currentColor" />
-                {/* Smile */}
-                <path d="M40 65 Q50 75 60 65" strokeLinecap="round" />
-                {/* Sweat drop */}
-                <path d="M65 45 Q68 40 65 35" strokeWidth="1" />
-            </svg>
-        </motion.div>
-    );
-};
+
 
 export default function FloatingBackground() {
     const [mounted, setMounted] = useState(false);
@@ -100,7 +72,9 @@ export default function FloatingBackground() {
                     {item}
                 </FloatingItem>
             ))}
-            <FunnyRotatingObject />
+            <div className="fixed bottom-0 right-0 z-0 pointer-events-none opacity-80">
+                <ThreeDKettlebell />
+            </div>
         </div>
     );
 }
