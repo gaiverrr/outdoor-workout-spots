@@ -33,9 +33,9 @@ export default function Home() {
   });
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      {/* Header: Search Bar, Filters, Status - Full Width on All Screens */}
-      <header className="flex-shrink-0 bg-surface border-b border-neon-magenta/20">
+    <div className="h-full grid grid-rows-[auto_1fr]">
+      {/* Header: Search Bar, Filters, Status - Auto height */}
+      <header className="bg-surface border-b border-neon-magenta/20">
         {/* Search Bar Section */}
         <div className="border-b border-neon-magenta/20 p-4">
           <div className="container mx-auto max-w-7xl">
@@ -67,14 +67,12 @@ export default function Home() {
         )}
       </header>
 
-      {/* Main Content: Responsive Grid Layout */}
-      {/* Mobile: Stacked vertically (map 50vh, list scrolls) */}
-      {/* Tablet (md): Side-by-side 50/50 split */}
-      {/* Desktop (lg): 60/40 split favoring map */}
-      {/* Large Desktop (xl): 55/45 split with max content width */}
-      <div className="flex-1 flex flex-col md:grid md:grid-cols-2 lg:grid-cols-[3fr_2fr] xl:grid-cols-[11fr_9fr] min-h-0">
-        {/* Map Section */}
-        <section className="h-[50vh] md:h-auto bg-elevated border-b md:border-b-0 md:border-r border-neon-cyan/20 relative overflow-hidden">
+      {/* Main Content: Responsive Grid Layout - Takes remaining 1fr height */}
+      {/* Mobile: Stacked vertically with natural scroll (map 50vh, list below) */}
+      {/* Tablet/Desktop: Side-by-side with fixed map and scrollable list */}
+      <div className="overflow-y-auto md:overflow-hidden flex flex-col md:grid md:grid-cols-2 lg:grid-cols-[3fr_2fr] xl:grid-cols-[11fr_9fr]">
+        {/* Map Section - 50vh on mobile, full height on desktop */}
+        <section className="h-[50vh] md:h-full flex-shrink-0 bg-elevated border-b md:border-b-0 md:border-r border-neon-cyan/20 relative overflow-hidden">
           <SpotsMap
             spots={filteredSpots}
             userLocation={userLocation}
@@ -83,8 +81,8 @@ export default function Home() {
           />
         </section>
 
-        {/* Spots List Section */}
-        <section className="flex-1 overflow-y-auto bg-app p-4 md:p-6 lg:p-8">
+        {/* Spots List Section - Flows naturally on mobile, scrollable column on desktop */}
+        <section className="flex-shrink-0 md:h-full md:overflow-y-auto bg-app p-4 md:p-6 lg:p-8">
           <div className="container mx-auto max-w-4xl">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
