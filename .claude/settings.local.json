@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo create:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(convert -version:*)",
+      "Bash(magick:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

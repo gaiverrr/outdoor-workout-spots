@@ -1,26 +1,169 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark background colors */
+  --bg-app: #0a0a0f;
+  --bg-surface: #13131a;
+  --bg-elevated: #1a1a24;
+
+  /* Neon colors for crazy design */
+  --neon-cyan: #00f0ff;
+  --neon-magenta: #ff00ff;
+  --neon-purple: #9d00ff;
+  --neon-blue: #0066ff;
+  --neon-lime: #ccff00;
+
+  /* Text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #b4b4c8;
+  --text-dim: #7a7a8e;
+
+  /* Gradient stops */
+  --gradient-start: var(--neon-cyan);
+  --gradient-mid: var(--neon-magenta);
+  --gradient-end: var(--neon-purple);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Background colors */
+  --color-app: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-elevated: var(--bg-elevated);
+
+  /* Neon accent colors */
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-magenta: var(--neon-magenta);
+  --color-neon-purple: var(--neon-purple);
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-lime: var(--neon-lime);
+
+  /* Text colors */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-dim: var(--text-dim);
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Custom spacing for mobile-first */
+  --spacing-safe-top: env(safe-area-inset-top);
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  /* Prevent text size adjustment on mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Enable smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh; /* Use dynamic viewport height on mobile */
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom utility classes for crazy design */
+.text-glow {
+  text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);
+}
+
+.text-glow-magenta {
+  text-shadow: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta), 0 0 40px var(--neon-magenta);
+}
+
+.border-glow {
+  box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+}
+
+.border-glow-cyan {
+  box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan), inset 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+.border-glow-magenta {
+  box-shadow: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta), inset 0 0 10px rgba(255, 0, 255, 0.1);
+}
+
+.bg-gradient-neon {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+}
+
+.bg-gradient-neon-horizontal {
+  background: linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+}
+
+/* Animated gradient background */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-gradient-animated {
+  background: linear-gradient(270deg, var(--neon-cyan), var(--neon-magenta), var(--neon-purple), var(--neon-blue));
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Pulse animation for interactive elements */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Card tilt effect for crazy design */
+.card-tilt {
+  transform: rotate(-0.5deg);
+  transition: transform 0.3s ease;
+}
+
+.card-tilt:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(19, 19, 26, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
