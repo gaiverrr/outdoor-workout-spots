@@ -57,7 +57,7 @@ export function useUserLocation(): UseUserLocationResult {
   } else if (query.isSuccess) {
     status = "granted";
   } else if (query.error) {
-    const geolocationError = query.error as GeolocationPositionError;
+    const geolocationError = query.error as unknown as GeolocationPositionError;
     status = geolocationError?.code === 1 ? "denied" : "error";
   }
 
