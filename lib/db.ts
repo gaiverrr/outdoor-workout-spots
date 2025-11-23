@@ -12,11 +12,17 @@ if (typeof window === 'undefined') {
 }
 
 if (!process.env.TURSO_DATABASE_URL) {
-  throw new Error('TURSO_DATABASE_URL is not set');
+  throw new Error(
+    'TURSO_DATABASE_URL is not set. Please copy .env.local.example to .env.local and add your credentials.\n' +
+    'See scripts/R2_SETUP.md for setup instructions.'
+  );
 }
 
 if (!process.env.TURSO_AUTH_TOKEN) {
-  throw new Error('TURSO_AUTH_TOKEN is not set');
+  throw new Error(
+    'TURSO_AUTH_TOKEN is not set. Please copy .env.local.example to .env.local and add your credentials.\n' +
+    'See scripts/R2_SETUP.md for setup instructions.'
+  );
 }
 
 export const db = createClient({

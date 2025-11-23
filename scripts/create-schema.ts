@@ -2,7 +2,7 @@
  * Create Turso database schema
  */
 
-import { db } from '../lib/db';
+import { db } from '@/lib/db';
 
 async function createSchema() {
   console.log('🗄️  Creating database schema...\n');
@@ -31,6 +31,7 @@ async function createSchema() {
     // Create indexes for fast queries
     await db.execute('CREATE INDEX IF NOT EXISTS idx_lat_lon ON spots(lat, lon)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_title ON spots(title)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_address ON spots(address)');
 
     console.log('✅ Created indexes');
 

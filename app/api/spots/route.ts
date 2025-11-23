@@ -8,15 +8,23 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
 
-    // Pagination params
-    const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
-    const offset = parseInt(searchParams.get("offset") || "0");
+    // Pagination params with validation
+    const limit = Math.min(
+      Math.max(1, parseInt(searchParams.get("limit") || "100") || 100),
+      500
+    );
+    const offset = Math.max(0, parseInt(searchParams.get("offset") || "0") || 0);
 
     // Map bounds for filtering (only load visible spots)
-    const minLat = searchParams.get("minLat");
-    const maxLat = searchParams.get("maxLat");
-    const minLon = searchParams.get("minLon");
-    const maxLon = searchParams.get("maxLon");
+    const minLatParam = searchParams.get("minLat");
+    const maxLatParam = searchParams.get("maxLat");
+    const minLonParam = searchParams.get("minLon");
+    const maxLonParam = searchParams.get("maxLon");
+
+    const minLat = minLatParam ? parseFloat(minLatParam) : null;
+    const maxLat = maxLatParam ? parseFloat(maxLatParam) : null;
+    const minLon = minLonParam ? parseFloat(minLonParam) : null;
+    const maxLon = maxLonParam ? parseFloat(maxLonParam) : null;
 
     // Search query
     const search = searchParams.get("search");
@@ -26,9 +34,10 @@ export async function GET(request: NextRequest) {
     const args: (string | number)[] = [];
 
     // Filter by map bounds if provided
-    if (minLat && maxLat && minLon && maxLon) {
+    if (minLat !== null && maxLat !== null && minLon !== null && maxLon !== null &&
+        !isNaN(minLat) && !isNaN(maxLat) && !isNaN(minLon) && !isNaN(maxLon)) {
       sql += " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?";
-      args.push(parseFloat(minLat), parseFloat(maxLat), parseFloat(minLon), parseFloat(maxLon));
+      args.push(minLat, maxLat, minLon, maxLon);
     }
 
     // Filter by search query
@@ -46,19 +55,19 @@ export async function GET(request: NextRequest) {
 
     // Transform rows to CalisthenicsSpot format
     const spots: CalisthenicsSpot[] = result.rows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      name: row.name,
-      lat: row.lat,
-      lon: row.lon,
-      address: row.address,
+      id: Number(row.id),
+      title: String(row.title),
+      name: row.name ? String(row.name) : null,
+      lat: row.lat !== null ? Number(row.lat) : undefined,
+      lon: row.lon !== null ? Number(row.lon) : undefined,
+      address: row.address ? String(row.address) : undefined,
       details: {
-        equipment: row.equipment ? JSON.parse(row.equipment) : undefined,
-        disciplines: row.disciplines ? JSON.parse(row.disciplines) : undefined,
-        description: row.description,
-        features: row.features_type ? { type: row.features_type } : undefined,
-        images: row.images ? JSON.parse(row.images) : undefined,
-        rating: row.rating,
+        equipment: row.equipment ? JSON.parse(String(row.equipment)) : undefined,
+        disciplines: row.disciplines ? JSON.parse(String(row.disciplines)) : undefined,
+        description: row.description ? String(row.description) : undefined,
+        features: row.features_type ? { type: String(row.features_type) } : undefined,
+        images: row.images ? JSON.parse(String(row.images)) : undefined,
+        rating: row.rating !== null ? Number(row.rating) : undefined,
       },
     }));
 
@@ -66,9 +75,10 @@ export async function GET(request: NextRequest) {
     let countSql = "SELECT COUNT(*) as total FROM spots WHERE 1=1";
     const countArgs: (string | number)[] = [];
 
-    if (minLat && maxLat && minLon && maxLon) {
+    if (minLat !== null && maxLat !== null && minLon !== null && maxLon !== null &&
+        !isNaN(minLat) && !isNaN(maxLat) && !isNaN(minLon) && !isNaN(maxLon)) {
       countSql += " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?";
-      countArgs.push(parseFloat(minLat), parseFloat(maxLat), parseFloat(minLon), parseFloat(maxLon));
+      countArgs.push(minLat, maxLat, minLon, maxLon);
     }
 
     if (search) {
@@ -78,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     const countResult = await db.execute({ sql: countSql, args: countArgs });
-    const total = countResult.rows[0]?.total || 0;
+    const total = Number(countResult.rows[0]?.total) || 0;
 
     return NextResponse.json({
       spots,

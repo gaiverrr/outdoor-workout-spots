@@ -2,18 +2,18 @@
  * Migrate spots data from JSON to Turso with batch transactions
  */
 
-import { db } from '../lib/db';
+import { db } from '@/lib/db';
 import spotsData from '../data/spots.json';
-import type { CalisthenicsParksDataset } from '../data/calisthenics-spots.types';
+import type { CalisthenicsParksDataset, CalisthenicsSpot } from '@/data/calisthenics-spots.types';
 
 const BATCH_SIZE = 500; // Larger batches with transactions
 const MAX_RETRIES = 3;
 
-async function sleep(ms: number) {
+async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function insertBatchWithRetry(batch: any[], batchNum: number, retries = 0): Promise<boolean> {
+async function insertBatchWithRetry(batch: CalisthenicsSpot[], batchNum: number, retries = 0): Promise<boolean> {
   try {
     // Use batch execute for better performance with upsert
     const statements = batch.map(spot => ({
@@ -38,10 +38,10 @@ async function insertBatchWithRetry(batch: any[], batchNum: number, retries = 0)
     }));
 
     // Execute batch
-    await db.batch(statements as any);
+    await db.batch(statements);
     return true;
-  } catch (error: any) {
-    if (error.code === 'ETIMEDOUT' && retries < MAX_RETRIES) {
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ETIMEDOUT' && retries < MAX_RETRIES) {
       console.log(`\n⚠️  Timeout on batch ${batchNum}, retrying (${retries + 1}/${MAX_RETRIES})...`);
       await sleep(2000 * (retries + 1)); // Exponential backoff
       return insertBatchWithRetry(batch, batchNum, retries + 1);
