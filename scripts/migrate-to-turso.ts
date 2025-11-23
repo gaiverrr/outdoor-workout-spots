@@ -1,12 +1,54 @@
 /**
- * Migrate spots data from JSON to Turso
+ * Migrate spots data from JSON to Turso with batch transactions
  */
 
 import { db } from '../lib/db';
 import spotsData from '../data/spots.json';
 import type { CalisthenicsParksDataset } from '../data/calisthenics-spots.types';
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 500; // Larger batches with transactions
+const MAX_RETRIES = 3;
+
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function insertBatchWithRetry(batch: any[], batchNum: number, retries = 0): Promise<boolean> {
+  try {
+    // Use batch execute for better performance with upsert
+    const statements = batch.map(spot => ({
+      sql: `INSERT OR REPLACE INTO spots (
+        id, title, name, lat, lon, address, equipment, disciplines,
+        description, features_type, images, rating
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        spot.id,
+        spot.title || spot.name || `Spot #${spot.id}`,
+        spot.name || null,
+        spot.lat ?? null,
+        spot.lon ?? null,
+        spot.address || null,
+        spot.details?.equipment ? JSON.stringify(spot.details.equipment) : null,
+        spot.details?.disciplines ? JSON.stringify(spot.details.disciplines) : null,
+        spot.details?.description || null,
+        spot.details?.features?.type || null,
+        spot.details?.images ? JSON.stringify(spot.details.images) : null,
+        spot.details?.rating ?? null,
+      ]
+    }));
+
+    // Execute batch
+    await db.batch(statements as any);
+    return true;
+  } catch (error: any) {
+    if (error.code === 'ETIMEDOUT' && retries < MAX_RETRIES) {
+      console.log(`\n⚠️  Timeout on batch ${batchNum}, retrying (${retries + 1}/${MAX_RETRIES})...`);
+      await sleep(2000 * (retries + 1)); // Exponential backoff
+      return insertBatchWithRetry(batch, batchNum, retries + 1);
+    }
+    throw error;
+  }
+}
 
 async function migrate() {
   console.log('🚀 Starting migration to Turso...\n');
@@ -15,45 +57,24 @@ async function migrate() {
   const spots = dataset.spots;
 
   console.log(`📊 Total spots to migrate: ${spots.length}`);
+  console.log(`📦 Batch size: ${BATCH_SIZE} spots per transaction`);
+  console.log(`♻️  Using INSERT OR REPLACE (upsert) - duplicates will be updated\n`);
 
-  // Clear existing data
-  console.log('🗑️  Clearing existing data...');
-  await db.execute('DELETE FROM spots');
-
-  // Migrate in batches
+  // Migrate in batches with transactions
   let migrated = 0;
   const startTime = Date.now();
+  const totalBatches = Math.ceil(spots.length / BATCH_SIZE);
 
   for (let i = 0; i < spots.length; i += BATCH_SIZE) {
     const batch = spots.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
 
-    // Insert each spot using prepared statements
-    for (const spot of batch) {
-      await db.execute({
-        sql: `INSERT INTO spots (
-          id, title, name, lat, lon, address, equipment, disciplines,
-          description, features_type, images, rating
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [
-          spot.id,
-          spot.title,
-          spot.name || null,
-          spot.lat ?? null,
-          spot.lon ?? null,
-          spot.address || null,
-          spot.details?.equipment ? JSON.stringify(spot.details.equipment) : null,
-          spot.details?.disciplines ? JSON.stringify(spot.details.disciplines) : null,
-          spot.details?.description || null,
-          spot.details?.features?.type || null,
-          spot.details?.images ? JSON.stringify(spot.details.images) : null,
-          spot.details?.rating ?? null,
-        ]
-      });
+    await insertBatchWithRetry(batch, batchNum);
 
-      migrated++;
-    }
-
-    process.stdout.write(`\r   Progress: ${migrated}/${spots.length} (${((migrated / spots.length) * 100).toFixed(1)}%)`);
+    migrated += batch.length;
+    const percent = ((migrated / spots.length) * 100).toFixed(1);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    process.stdout.write(`\r   Progress: ${migrated}/${spots.length} (${percent}%) - Batch ${batchNum}/${totalBatches} - ${elapsed}s elapsed`);
   }
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -67,6 +88,8 @@ async function migrate() {
 
   if (count !== spots.length) {
     console.log(`⚠️  Warning: Expected ${spots.length} but got ${count}`);
+  } else {
+    console.log(`✅ All spots migrated successfully!`);
   }
 }
 
