@@ -22,19 +22,26 @@ npm start
 
 # Run linter
 npm run lint
+
+# Database commands
+npm run db:setup      # Create Turso database schema
+npm run db:migrate    # Migrate spots data to Turso
 ```
 
 ## Architecture
 
 ### Data Flow
 
-The app follows a client-side data flow pattern:
+The app uses a modern client-server architecture with edge database and query caching:
 
-1. **Data Source**: Static JSON dataset (`data/spots.json`) with metadata wrapper containing 26,977 workout spots
-2. **API Layer**: Next.js API route (`app/api/spots/route.ts`) extracts spots array, cleans/normalizes data with caching
-3. **Custom Hooks**: React hooks fetch, transform, and filter data
-4. **Components**: UI components consume processed data from hooks
-5. **Images**: All images served from Cloudflare R2 CDN with immutable caching
+1. **Data Source**:
+   - **Production**: Turso edge SQLite database (26,977 spots indexed by ID, lat/lon, title)
+   - **Backup**: Static JSON dataset (`data/spots.json`) with metadata wrapper
+2. **API Layer**: Next.js API route (`app/api/spots/route.ts`) queries Turso with pagination, filtering, and search
+3. **Query Layer**: TanStack Query (React Query) handles caching, background refetching, and infinite scroll
+4. **Custom Hooks**: React hooks transform and filter data (distance calculations, equipment filtering)
+5. **Components**: UI components consume processed data from hooks
+6. **Images**: All images served from Cloudflare R2 CDN with immutable caching
 
 ### Dataset Structure
 
@@ -59,20 +66,34 @@ The `data/spots.json` file has a metadata wrapper:
 The data goes through these transformations before display:
 
 ```
-spots.json (with metadata) → API route (extract + clean) → useSpots (fetch) → useSpotsWithDistance (distance calc) → useFilteredSpots (search/filter) → UI components
+Turso DB → API route (paginated SQL query) → TanStack Query (cache + infinite scroll) → useSpotsInfinite → useSpotsWithDistance (distance calc) → useFilteredSpots (filter) → UI components
 ```
 
-**useSpots**: Fetches spots from `/api/spots` endpoint
-**useSpotsWithDistance**: Adds distance calculations when user location is available (uses Haversine formula in `lib/distance.ts`)
-**useFilteredSpots**: Applies search queries and equipment filters (bars, rings, track)
+**Database Layer (Turso):**
+- SQLite database with indexes on `id` (PRIMARY KEY), `lat/lon`, and `title`
+- Batch transactions with upsert (`INSERT OR REPLACE`) for data integrity
+- Edge deployment for low-latency global access
+
+**Query Layer (TanStack Query):**
+- Automatic request caching (1 min stale time, 5 min garbage collection)
+- Request deduplication
+- Background refetching
+- Optimistic updates support
+
+**Data Hooks:**
+- `useSpotsInfinite`: Fetches paginated spots using `useInfiniteQuery` (100 spots per page, infinite scroll)
+- `useUserLocation`: Gets user geolocation with React Query caching (5 min cache)
+- `useSpotsWithDistance`: Adds distance calculations when user location is available (Haversine formula in `lib/distance.ts`)
+- `useFilteredSpots`: Applies client-side search and equipment filters (bars, rings, track)
 
 ### Directory Structure
 
 ```
 app/
-  ├── api/spots/route.ts      # API endpoint serving spot data
-  ├── layout.tsx              # Root layout with PWA manifest, fonts
-  ├── page.tsx                # Main page with map + list view
+  ├── api/spots/route.ts      # Paginated API endpoint querying Turso
+  ├── layout.tsx              # Root layout with PWA manifest, TanStack Query provider
+  ├── page.tsx                # Main page with map + infinite scroll list
+  ├── providers.tsx           # TanStack Query client provider
   ├── register-sw.tsx         # Service worker registration
   └── spots/[id]/             # Individual spot detail pages
 components/
@@ -80,20 +101,24 @@ components/
   ├── Spots/                  # Spot list and card components
   └── Search/                 # Search bar and quick filters
 hooks/
-  ├── useSpots.ts             # Fetch spots from API
-  ├── useUserLocation.ts      # Get user geolocation
-  ├── useSpotsWithDistance.ts # Add distance to spots
-  └── useFilteredSpots.ts     # Search and filter logic
+  ├── useSpotsInfinite.ts     # Infinite scroll with TanStack Query
+  ├── useUserLocation.ts      # User geolocation with React Query caching
+  ├── useSpotsWithDistance.ts # Add distance calculations to spots
+  └── useFilteredSpots.ts     # Client-side search and filter logic
 lib/
+  ├── db.ts                   # Turso database client
   └── distance.ts             # Haversine distance calculation
 data/
-  ├── spots.json              # Main spot data (26K+ spots with metadata wrapper)
+  ├── spots.json              # Backup JSON data (26,977 spots with metadata)
   └── calisthenics-spots.types.ts  # TypeScript type definitions
 real-data/
   ├── backup-images-and-data-20251121.tar.gz  # Backup of images and original JSON
   └── r2-mapping.json         # Cloudflare R2 URL mappings
 scripts/
-  ├── upload-images-to-r2.ts  # Script to upload images to Cloudflare R2
+  ├── create-schema.ts        # Create Turso database schema
+  ├── migrate-to-turso.ts     # Migrate JSON data to Turso (batch + upsert)
+  ├── check-data.ts           # Data quality validation script
+  ├── upload-images-to-r2.ts  # Upload images to Cloudflare R2
   └── R2_SETUP.md             # Cloudflare R2 setup documentation
 ```
 
@@ -187,16 +212,26 @@ When adding equipment types, ensure they match these patterns or update the filt
 
 ## State Management
 
-No global state library. State is managed through:
+State is managed through a combination of server state (TanStack Query) and local UI state:
 
-1. **Local component state** (`useState`) for UI interactions
-2. **Custom hooks** for data fetching and transformations
+1. **Server State** (TanStack Query):
+   - Automatic caching and background refetching
+   - Query invalidation and optimistic updates
+   - Infinite scroll pagination state
+   - User location caching (5 min stale time)
+
+2. **Local UI State** (`useState`):
+   - Search query text
+   - Equipment filters
+   - Selected spot ID (syncs map + list)
+   - UI toggle states
+
 3. **Props drilling** for parent-child communication
 
 Main state in `app/page.tsx`:
-- `searchQuery`: Current search text
-- `filters`: Active equipment filters
-- `selectedSpotId`: Currently selected spot (syncs map + list)
+- `searchQuery`: Current search text (passed to `useSpotsInfinite`)
+- `filters`: Active equipment filters (client-side filtering)
+- `selectedSpotId`: Currently selected spot (syncs map + list highlighting)
 
 ## Mobile Considerations
 
@@ -209,19 +244,43 @@ Main state in `app/page.tsx`:
 
 ### GET /api/spots
 
-Returns normalized spot data array (extracts from metadata wrapper) with caching headers:
+**Paginated endpoint** querying Turso database with support for filtering and search.
 
-```
-Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400
+**Query Parameters:**
+- `limit` (optional): Number of spots per page (default: 100, max: 500)
+- `offset` (optional): Pagination offset (default: 0)
+- `search` (optional): Search query for title/address
+- `minLat`, `maxLat`, `minLon`, `maxLon` (optional): Map bounds filtering
+
+**Response:**
+```json
+{
+  "spots": CalisthenicsSpot[],
+  "pagination": {
+    "limit": 100,
+    "offset": 0,
+    "total": 26977,
+    "hasMore": true
+  }
+}
 ```
 
-Route is force-static (`export const dynamic = "force-static"`), meaning data is cached at build time.
+**Caching:**
+```
+Cache-Control: public, s-maxage=60, stale-while-revalidate=300
+```
+
+**Configuration:**
+- Route is force-dynamic (`export const dynamic = "force-dynamic"`)
+- Uses prepared statements with parameter binding for SQL injection protection
+- Indexes on `id` (PRIMARY KEY), `lat/lon`, and `title` for fast queries
 
 **Processing:**
-1. Reads `data/spots.json` with metadata wrapper
-2. Extracts `spots` array from dataset
-3. Cleans equipment and disciplines arrays (removes empty strings, duplicates)
-4. Returns cleaned spots array
+1. Parses query parameters (limit, offset, search, bounds)
+2. Builds SQL query with optional filters
+3. Executes query on Turso database
+4. Transforms database rows to `CalisthenicsSpot` format (deserializes JSON fields)
+5. Returns paginated results with metadata
 
 ## Common Tasks
 
@@ -275,3 +334,131 @@ If you need to upload images to a new R2 bucket:
 ### Alternative: Use Existing R2 URLs
 
 The current `data/spots.json` already contains R2 URLs. No action needed unless migrating to a different bucket.
+
+## Database (Turso)
+
+### Overview
+
+The app uses **Turso** as the production database - an edge SQLite database with global replication for low-latency access.
+
+**Why Turso:**
+- Edge deployment (data close to users globally)
+- SQLite compatibility (familiar, powerful)
+- Built-in replication and backups
+- Generous free tier (9GB storage, 1 billion row reads/month)
+- LibSQL protocol for efficient queries
+
+### Database Schema
+
+```sql
+CREATE TABLE spots (
+  id INTEGER PRIMARY KEY,           -- Unique spot ID (prevents duplicates)
+  title TEXT NOT NULL,              -- Display title (required)
+  name TEXT,                        -- Alternative name (optional)
+  lat REAL,                         -- Latitude (98.5% have coords)
+  lon REAL,                         -- Longitude
+  address TEXT,                     -- Location string
+  equipment TEXT,                   -- JSON array of equipment types
+  disciplines TEXT,                 -- JSON array of workout disciplines
+  description TEXT,                 -- Description text
+  features_type TEXT,               -- Feature category
+  images TEXT,                      -- JSON array of R2 image URLs
+  rating INTEGER                    -- Quality rating (1-5)
+);
+
+-- Indexes for performance
+CREATE INDEX idx_lat_lon ON spots(lat, lon);  -- Map viewport queries
+CREATE INDEX idx_title ON spots(title);        -- Text search
+```
+
+### Database Setup
+
+**Initial Setup:**
+```bash
+# Create schema in Turso
+npm run db:setup
+
+# Migrate all spots from JSON to Turso
+npm run db:migrate
+```
+
+**Environment Variables (.env.local):**
+```bash
+TURSO_DATABASE_URL=libsql://your-db.turso.io
+TURSO_AUTH_TOKEN=your_auth_token
+```
+
+### Migration Script
+
+The migration script (`scripts/migrate-to-turso.ts`) uses:
+- **Batch transactions**: 500 spots per batch for speed
+- **Upsert pattern**: `INSERT OR REPLACE` prevents duplicates
+- **Retry logic**: Exponential backoff for network timeouts
+- **Data validation**: Fallback to `name` if `title` is missing
+- **Progress tracking**: Real-time progress display
+
+**Features:**
+- Migrates 26,977 spots in ~40-50 seconds
+- Safe to re-run (idempotent with upsert)
+- Handles network interruptions with retries
+- Validates data quality before insertion
+
+## TanStack Query Integration
+
+### Why TanStack Query
+
+The app uses **TanStack Query** (React Query) for all server state management:
+
+**Benefits:**
+- Automatic request caching and deduplication
+- Background refetching keeps data fresh
+- Optimistic updates support
+- Built-in loading and error states
+- Infinite scroll pagination
+- Request retry with exponential backoff
+
+### Query Configuration
+
+**Global defaults** (`app/providers.tsx`):
+```typescript
+{
+  staleTime: 60 * 1000,      // 1 minute (how long data is "fresh")
+  gcTime: 5 * 60 * 1000,     // 5 minutes (cache lifetime)
+  refetchOnWindowFocus: false,
+  retry: 1                    // Retry failed requests once
+}
+```
+
+### Usage Example
+
+```typescript
+// Infinite scroll with pagination
+const {
+  spots,
+  loading,
+  loadMore,
+  hasMore
+} = useSpotsInfinite({ limit: 100, searchQuery });
+
+// User location with caching
+const {
+  location,
+  status,
+  requestLocation
+} = useUserLocation();
+```
+
+### DevTools (Development)
+
+To add React Query DevTools for debugging:
+```bash
+npm install @tanstack/react-query-devtools
+```
+
+Then import in `app/providers.tsx`:
+```typescript
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+// Add inside QueryClientProvider
+<ReactQueryDevtools initialIsOpen={false} />
+```
