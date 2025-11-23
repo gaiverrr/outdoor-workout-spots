@@ -23,7 +23,9 @@
       "Bash(npm install:*)",
       "Bash(npx tsx:*)",
       "Bash(npm uninstall:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "Bash(npm run db:setup:*)",
+      "Bash(npm run db:migrate:*)"
     ],
     "deny": [],
     "ask": []
