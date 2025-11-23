@@ -56,7 +56,7 @@ export function useSpotsInfinite({
     queryFn: ({ pageParam }) => fetchSpots({ pageParam, limit, searchQuery }),
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
-        return lastPage.pagination.offset;
+        return lastPage.pagination.offset + lastPage.spots.length;
       }
       return undefined;
     },
