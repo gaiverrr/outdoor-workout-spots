@@ -20,7 +20,10 @@
       "Bash(brew install:*)",
       "Bash(parallel:*)",
       "Bash(xargs ls -lh)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(tar:*)"
     ],
     "deny": [],
     "ask": []

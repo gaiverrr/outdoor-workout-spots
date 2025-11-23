@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
-import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
+import type { CalisthenicsParksDataset } from "@/data/calisthenics-spots.types";
 import spotsData from "@/data/spots.json";
 import { SpotDetailClient } from "./SpotDetailClient";
 
+// Extract spots from dataset
+const dataset = spotsData as CalisthenicsParksDataset;
+const spots = dataset.spots;
+
 export async function generateStaticParams() {
-  const spots = spotsData as CalisthenicsSpot[];
   return spots.map((spot) => ({
     id: spot.id.toString(),
   }));
@@ -16,7 +19,6 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const spots = spotsData as CalisthenicsSpot[];
   const spot = spots.find((s) => s.id === parseInt(id));
 
   if (!spot) {
@@ -38,7 +40,6 @@ export default async function SpotDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const spots = spotsData as CalisthenicsSpot[];
   const spot = spots.find((s) => s.id === parseInt(id));
 
   if (!spot) {
