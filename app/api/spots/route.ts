@@ -1,46 +1,102 @@
-import { NextResponse } from "next/server";
-import type { CalisthenicsParksDataset } from "@/data/calisthenics-spots.types";
-import spotsData from "@/data/spots.json";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Type assertion for the imported JSON with metadata wrapper
-    const dataset = spotsData as CalisthenicsParksDataset;
-    const spots = dataset.spots;
+    const searchParams = request.nextUrl.searchParams;
 
-    // Clean and normalize the data
-    const cleanedSpots = spots.map((spot) => ({
-      ...spot,
-      details: spot.details
-        ? {
-            ...spot.details,
-            // Remove empty strings and duplicates from equipment (if exists)
-            equipment: spot.details.equipment
-              ? Array.from(
-                  new Set(spot.details.equipment.filter((item) => item.trim() !== ""))
-                )
-              : undefined,
-            // Remove empty strings and duplicates from disciplines (if exists)
-            disciplines: spot.details.disciplines
-              ? Array.from(
-                  new Set(spot.details.disciplines.filter((item) => item.trim() !== ""))
-                )
-              : undefined,
-          }
-        : undefined,
+    // Pagination params
+    const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
+    const offset = parseInt(searchParams.get("offset") || "0");
+
+    // Map bounds for filtering (only load visible spots)
+    const minLat = searchParams.get("minLat");
+    const maxLat = searchParams.get("maxLat");
+    const minLon = searchParams.get("minLon");
+    const maxLon = searchParams.get("maxLon");
+
+    // Search query
+    const search = searchParams.get("search");
+
+    // Build query
+    let sql = "SELECT * FROM spots WHERE 1=1";
+    const args: (string | number)[] = [];
+
+    // Filter by map bounds if provided
+    if (minLat && maxLat && minLon && maxLon) {
+      sql += " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?";
+      args.push(parseFloat(minLat), parseFloat(maxLat), parseFloat(minLon), parseFloat(maxLon));
+    }
+
+    // Filter by search query
+    if (search) {
+      sql += " AND (title LIKE ? OR address LIKE ?)";
+      const searchTerm = `%${search}%`;
+      args.push(searchTerm, searchTerm);
+    }
+
+    // Add pagination
+    sql += " LIMIT ? OFFSET ?";
+    args.push(limit, offset);
+
+    const result = await db.execute({ sql, args });
+
+    // Transform rows to CalisthenicsSpot format
+    const spots: CalisthenicsSpot[] = result.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      name: row.name,
+      lat: row.lat,
+      lon: row.lon,
+      address: row.address,
+      details: {
+        equipment: row.equipment ? JSON.parse(row.equipment) : undefined,
+        disciplines: row.disciplines ? JSON.parse(row.disciplines) : undefined,
+        description: row.description,
+        features: row.features_type ? { type: row.features_type } : undefined,
+        images: row.images ? JSON.parse(row.images) : undefined,
+        rating: row.rating,
+      },
     }));
 
-    return NextResponse.json(cleanedSpots, {
+    // Get total count (for pagination UI)
+    let countSql = "SELECT COUNT(*) as total FROM spots WHERE 1=1";
+    const countArgs: (string | number)[] = [];
+
+    if (minLat && maxLat && minLon && maxLon) {
+      countSql += " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?";
+      countArgs.push(parseFloat(minLat), parseFloat(maxLat), parseFloat(minLon), parseFloat(maxLon));
+    }
+
+    if (search) {
+      countSql += " AND (title LIKE ? OR address LIKE ?)";
+      const searchTerm = `%${search}%`;
+      countArgs.push(searchTerm, searchTerm);
+    }
+
+    const countResult = await db.execute({ sql: countSql, args: countArgs });
+    const total = countResult.rows[0]?.total || 0;
+
+    return NextResponse.json({
+      spots,
+      pagination: {
+        limit,
+        offset,
+        total,
+        hasMore: offset + spots.length < total,
+      },
+    }, {
       headers: {
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
       },
     });
   } catch (error) {
-    console.error("Error loading spots data:", error);
+    console.error("Error loading spots:", error);
     return NextResponse.json(
-      { error: "Failed to load spots data" },
+      { error: "Failed to load spots" },
       { status: 500 }
     );
   }

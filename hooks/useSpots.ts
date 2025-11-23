@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
 
 export interface UseSpotsResult {
@@ -10,40 +10,32 @@ export interface UseSpotsResult {
   refetch: () => void;
 }
 
+async function fetchSpots(): Promise<CalisthenicsSpot[]> {
+  const response = await fetch("/api/spots");
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch spots: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * @deprecated Use useSpotsInfinite instead for better performance with pagination
+ */
 export function useSpots(): UseSpotsResult {
-  const [spots, setSpots] = useState<CalisthenicsSpot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchSpots = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch("/api/spots");
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch spots: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setSpots(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load spots");
-      console.error("Error fetching spots:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSpots();
-  }, []);
+  const query = useQuery({
+    queryKey: ["spots", "all"],
+    queryFn: fetchSpots,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   return {
-    spots,
-    loading,
-    error,
-    refetch: fetchSpots,
+    spots: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error?.message ?? null,
+    refetch: () => {
+      query.refetch();
+    },
   };
 }

@@ -5,7 +5,7 @@ import { SpotsMap } from "@/components/Map/SpotsMap";
 import { SpotsList } from "@/components/Spots/SpotsList";
 import { SearchBar } from "@/components/Search/SearchBar";
 import { QuickFilters } from "@/components/Search/QuickFilters";
-import { useSpotsPaginated } from "@/hooks/useSpotsPaginated";
+import { useSpotsInfinite } from "@/hooks/useSpotsInfinite";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useSpotsWithDistance } from "@/hooks/useSpotsWithDistance";
 import { useFilteredSpots } from "@/hooks/useFilteredSpots";
@@ -20,15 +20,16 @@ export default function Home() {
   });
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
 
-  // Fetch data with pagination
+  // Fetch data with infinite scroll
   const {
     spots,
     loading: spotsLoading,
+    loadingMore,
     error: spotsError,
     hasMore,
     total,
     loadMore,
-  } = useSpotsPaginated(100, searchQuery);
+  } = useSpotsInfinite({ limit: 100, searchQuery });
   const { location: userLocation, status: locationStatus } = useUserLocation();
 
   // Calculate distances and apply filters
@@ -115,9 +116,10 @@ export default function Home() {
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={loadMore}
-                  className="px-8 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan/50 transition-all font-mono font-semibold shadow-glow-cyan"
+                  disabled={loadingMore}
+                  className="px-8 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan/50 transition-all font-mono font-semibold shadow-glow-cyan disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Load More Spots ({filteredSpots.length} / {total})
+                  {loadingMore ? "Loading..." : `Load More Spots (${filteredSpots.length} / ${total})`}
                 </button>
               </div>
             )}

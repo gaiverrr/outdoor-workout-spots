@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export interface Coordinates {
   lat: number;
@@ -16,51 +16,55 @@ export interface UseUserLocationResult {
   requestLocation: () => void;
 }
 
-export function useUserLocation(): UseUserLocationResult {
-  const [location, setLocation] = useState<Coordinates | null>(null);
-  const [status, setStatus] = useState<LocationStatus>("idle");
-  const [error, setError] = useState<string | null>(null);
+async function getUserLocation(): Promise<Coordinates> {
+  if (!navigator.geolocation) {
+    throw new Error("Geolocation is not supported by your browser");
+  }
 
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      setStatus("error");
-      setError("Geolocation is not supported by your browser");
-      return;
-    }
-
-    setStatus("loading");
-    setError(null);
-
+  return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
+        resolve({
           lat: position.coords.latitude,
           lon: position.coords.longitude,
         });
-        setStatus("granted");
       },
       (err) => {
-        setStatus(err.code === err.PERMISSION_DENIED ? "denied" : "error");
-        setError(err.message);
+        reject(err);
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+        maximumAge: 300000, // 5 minutes - cache location for 5 minutes
       }
     );
-  };
+  });
+}
 
-  // Auto-request location on mount
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    requestLocation();
-  }, []);
+export function useUserLocation(): UseUserLocationResult {
+  const query = useQuery({
+    queryKey: ["userLocation"],
+    queryFn: getUserLocation,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Determine status based on query state
+  let status: LocationStatus = "idle";
+  if (query.isLoading) {
+    status = "loading";
+  } else if (query.isSuccess) {
+    status = "granted";
+  } else if (query.error) {
+    const geolocationError = query.error as GeolocationPositionError;
+    status = geolocationError?.code === 1 ? "denied" : "error";
+  }
 
   return {
-    location,
+    location: query.data ?? null,
     status,
-    error,
-    requestLocation,
+    error: query.error?.message ?? null,
+    requestLocation: () => query.refetch(),
   };
 }
