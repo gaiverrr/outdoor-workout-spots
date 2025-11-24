@@ -6,6 +6,10 @@ import { SpotDetailClient } from "./SpotDetailClient";
 // Allow rendering pages that weren't pre-generated
 export const dynamicParams = true;
 
+// Use Incremental Static Regeneration (ISR)
+// Pages will be generated on-demand and cached for 1 hour
+export const revalidate = 3600;
+
 async function getSpotById(id: string): Promise<CalisthenicsSpot | null> {
   try {
     const result = await db.execute({
@@ -41,21 +45,10 @@ async function getSpotById(id: string): Promise<CalisthenicsSpot | null> {
 }
 
 export async function generateStaticParams() {
-  // Only generate static pages for production builds
-  // For preview/dev, use on-demand rendering to speed up builds
-  if (process.env.VERCEL_ENV !== 'production') {
-    return [];
-  }
-
-  try {
-    const result = await db.execute("SELECT id FROM spots");
-    return result.rows.map((row) => ({
-      id: String(row.id),
-    }));
-  } catch (error) {
-    console.error("Error generating static params:", error);
-    return [];
-  }
+  // Don't pre-generate any pages to avoid Vercel's 75MB deployment limit
+  // With ISR (revalidate = 3600), pages will be generated on-demand
+  // and cached for 1 hour, providing good performance without the huge bundle
+  return [];
 }
 
 export async function generateMetadata({
