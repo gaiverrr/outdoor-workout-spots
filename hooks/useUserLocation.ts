@@ -50,15 +50,26 @@ export function useUserLocation(): UseUserLocationResult {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
+  // Type guard for GeolocationPositionError
+  function isGeolocationError(error: unknown): error is GeolocationPositionError {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof (error as GeolocationPositionError).code === "number"
+    );
+  }
+
   // Determine status based on query state
   let status: LocationStatus = "idle";
   if (query.isLoading) {
     status = "loading";
   } else if (query.isSuccess) {
     status = "granted";
+  } else if (query.error && isGeolocationError(query.error)) {
+    status = query.error.code === 1 ? "denied" : "error";
   } else if (query.error) {
-    const geolocationError = query.error as unknown as GeolocationPositionError;
-    status = geolocationError?.code === 1 ? "denied" : "error";
+    status = "error";
   }
 
   return {
