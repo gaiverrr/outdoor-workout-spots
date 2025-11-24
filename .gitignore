@@ -41,7 +41,5 @@ yarn-error.log*
 next-env.d.ts
 /.idea/
 
-# real-data backups and images (stored in Cloudflare R2)
-/real-data/images/
-/real-data/*.tar.gz
-/real-data/blob-mapping.json
+# real-data backups and images (stored in Cloudflare R2 and Turso DB)
+/real-data/

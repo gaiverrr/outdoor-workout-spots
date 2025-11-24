@@ -1,14 +1,44 @@
 import { notFound } from "next/navigation";
-import type { CalisthenicsParksDataset } from "@/data/calisthenics-spots.types";
-import spotsData from "@/data/spots.json";
+import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
+import { db } from "@/lib/db";
 import { SpotDetailClient } from "./SpotDetailClient";
-
-// Extract spots from dataset
-const dataset = spotsData as CalisthenicsParksDataset;
-const spots = dataset.spots;
 
 // Allow rendering pages that weren't pre-generated
 export const dynamicParams = true;
+
+async function getSpotById(id: string): Promise<CalisthenicsSpot | null> {
+  try {
+    const result = await db.execute({
+      sql: "SELECT * FROM spots WHERE id = ?",
+      args: [parseInt(id)],
+    });
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: Number(row.id),
+      title: String(row.title),
+      name: row.name ? String(row.name) : null,
+      lat: row.lat !== null ? Number(row.lat) : undefined,
+      lon: row.lon !== null ? Number(row.lon) : undefined,
+      address: row.address ? String(row.address) : undefined,
+      details: {
+        equipment: row.equipment ? JSON.parse(String(row.equipment)) : undefined,
+        disciplines: row.disciplines ? JSON.parse(String(row.disciplines)) : undefined,
+        description: row.description ? String(row.description) : undefined,
+        features: row.features_type ? { type: String(row.features_type) } : undefined,
+        images: row.images ? JSON.parse(String(row.images)) : undefined,
+        rating: row.rating !== null ? Number(row.rating) : undefined,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching spot:", error);
+    return null;
+  }
+}
 
 export async function generateStaticParams() {
   // Only generate static pages for production builds
@@ -17,9 +47,15 @@ export async function generateStaticParams() {
     return [];
   }
 
-  return spots.map((spot) => ({
-    id: spot.id.toString(),
-  }));
+  try {
+    const result = await db.execute("SELECT id FROM spots");
+    return result.rows.map((row) => ({
+      id: String(row.id),
+    }));
+  } catch (error) {
+    console.error("Error generating static params:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -28,7 +64,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const spot = spots.find((s) => s.id === parseInt(id));
+  const spot = await getSpotById(id);
 
   if (!spot) {
     return {
@@ -49,7 +85,7 @@ export default async function SpotDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const spot = spots.find((s) => s.id === parseInt(id));
+  const spot = await getSpotById(id);
 
   if (!spot) {
     notFound();

@@ -34,9 +34,7 @@ npm run db:migrate    # Migrate spots data to Turso
 
 The app uses a modern client-server architecture with edge database and query caching:
 
-1. **Data Source**:
-   - **Production**: Turso edge SQLite database (26,977 spots indexed by ID, lat/lon, title)
-   - **Backup**: Static JSON dataset (`data/spots.json`) with metadata wrapper
+1. **Data Source**: Turso edge SQLite database (26,977 spots indexed by ID, lat/lon, title)
 2. **API Layer**: Next.js API route (`app/api/spots/route.ts`) queries Turso with pagination, filtering, and search
 3. **Query Layer**: TanStack Query (React Query) handles caching, background refetching, and infinite scroll
 4. **Custom Hooks**: React hooks transform and filter data (distance calculations, equipment filtering)
@@ -45,21 +43,12 @@ The app uses a modern client-server architecture with edge database and query ca
 
 ### Dataset Structure
 
-The `data/spots.json` file has a metadata wrapper:
+All data is stored in Turso database. The database schema includes:
 
-```typescript
-{
-  metadata: {
-    total_spots: 26977,
-    spots_with_coordinates: 26568,
-    spots_with_images: 17989,
-    total_image_urls: 37086,
-    generated_at: "ISO timestamp",
-    source: "calisthenics-parks.com"
-  },
-  spots: CalisthenicsSpot[]
-}
-```
+- **26,977 total spots** from calisthenics-parks.com
+- **26,568 spots with GPS coordinates**
+- **17,989 spots with images** (37,086 total images)
+- All images hosted on Cloudflare R2 CDN
 
 ### Key Data Transformations
 
@@ -106,19 +95,17 @@ hooks/
   ├── useSpotsWithDistance.ts # Add distance calculations to spots
   └── useFilteredSpots.ts     # Client-side search and filter logic
 lib/
-  ├── db.ts                   # Turso database client
+  ├── db.ts                   # Turso database client (singleton pattern)
   └── distance.ts             # Haversine distance calculation
 data/
-  ├── spots.json              # Backup JSON data (26,977 spots with metadata)
   └── calisthenics-spots.types.ts  # TypeScript type definitions
-real-data/
-  ├── backup-images-and-data-20251121.tar.gz  # Backup of images and original JSON
-  └── r2-mapping.json         # Cloudflare R2 URL mappings
 scripts/
   ├── create-schema.ts        # Create Turso database schema
-  ├── migrate-to-turso.ts     # Migrate JSON data to Turso (batch + upsert)
+  ├── migrate-to-turso.ts     # Migrate data to Turso (batch + upsert)
   ├── check-data.ts           # Data quality validation script
   ├── upload-images-to-r2.ts  # Upload images to Cloudflare R2
+  ├── optimize-images.sh      # Image optimization script
+  ├── optimize-images-parallel.sh  # Parallel image optimization
   └── R2_SETUP.md             # Cloudflare R2 setup documentation
 ```
 
@@ -193,12 +180,13 @@ All images are hosted on **Cloudflare R2** CDN:
 
 ### Adding New Spots
 
-The dataset is sourced from calisthenics-parks.com and should be treated as read-only in production. To modify:
+The dataset is sourced from calisthenics-parks.com and stored in Turso database. To modify:
 
-1. Edit `data/spots.json` (preserving the metadata wrapper structure)
-2. Ensure `id` is unique and incremental
+1. Update data directly in Turso database using SQL
+2. Ensure `id` is unique (PRIMARY KEY constraint)
 3. Include valid `lat`/`lon` for map display
-4. API route automatically cleans/normalizes data (removes duplicates, trims whitespace)
+4. Use `INSERT OR REPLACE` for upserts to maintain data integrity
+5. API route automatically normalizes data from database queries
 
 ### Equipment Filtering
 
@@ -329,11 +317,11 @@ If you need to upload images to a new R2 bucket:
    ```
 3. **Extract backup:** `tar -xzf real-data/backup-images-and-data-20251121.tar.gz -C real-data/`
 4. **Upload to R2:** `npx tsx scripts/upload-images-to-r2.ts`
-5. **Update spots.json:** Image URLs will be in `real-data/r2-mapping.json`
+5. **Update database:** R2 URLs are already stored in Turso database image fields
 
-### Alternative: Use Existing R2 URLs
+### Current Setup
 
-The current `data/spots.json` already contains R2 URLs. No action needed unless migrating to a different bucket.
+All images are already uploaded to Cloudflare R2 and URLs are stored in the Turso database. No additional setup needed.
 
 ## Database (Turso)
 
