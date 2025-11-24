@@ -39,7 +39,7 @@ export function useFilteredSpots({
       filtered = filtered.filter((spot) => {
         if (!spot.details?.equipment) return false;
 
-        const equipment = spot.details.equipment.map((e) => e.toLowerCase());
+        const equipment = spot.details.equipment?.map((e) => e.toLowerCase());
         const equipmentString = equipment.join(" ");
 
         let matches = true;

@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /.idea/
+
+# real-data backups and images (stored in Cloudflare R2 and Turso DB)
+/real-data/

@@ -1,9 +1,7 @@
 "use client";
 
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
-import { motion } from "framer-motion";
 import { SpotCard } from "./SpotCard";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface SpotsListProps {
   spots: SpotWithDistance[];
@@ -20,8 +18,6 @@ export function SpotsList({
   loading,
   error,
 }: SpotsListProps) {
-  const prefersReducedMotion = useReducedMotion();
-
   if (loading) {
     return (
       <div className="space-y-4 md:space-y-5 lg:space-y-6">
@@ -65,53 +61,17 @@ export function SpotsList({
     );
   }
 
-  // If user prefers reduced motion, use regular divs instead of motion.divs
-  if (prefersReducedMotion) {
-    return (
-      <div className="space-y-4 md:space-y-5 lg:space-y-6">
-        {spots.map((spot) => (
-          <div key={spot.id}>
-            <SpotCard
-              spot={spot}
-              isSelected={spot.id === selectedSpotId}
-              onClick={() => onSelectSpot?.(spot.id)}
-            />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <motion.div
-      className="space-y-4 md:space-y-5 lg:space-y-6"
-      variants={{
-        hidden: { opacity: 0 },
-        show: {
-          opacity: 1,
-          transition: {
-            staggerChildren: 0.1
-          }
-        }
-      }}
-      initial="hidden"
-      animate="show"
-    >
+    <div className="space-y-4 md:space-y-5 lg:space-y-6">
       {spots.map((spot) => (
-        <motion.div
-          key={spot.id}
-          variants={{
-            hidden: { opacity: 0, y: 50 },
-            show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-          }}
-        >
+        <div key={spot.id}>
           <SpotCard
             spot={spot}
             isSelected={spot.id === selectedSpotId}
             onClick={() => onSelectSpot?.(spot.id)}
           />
-        </motion.div>
+        </div>
       ))}
-    </motion.div>
+    </div>
   );
 }

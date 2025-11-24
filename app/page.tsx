@@ -5,7 +5,7 @@ import { SpotsMap } from "@/components/Map/SpotsMap";
 import { SpotsList } from "@/components/Spots/SpotsList";
 import { SearchBar } from "@/components/Search/SearchBar";
 import { QuickFilters } from "@/components/Search/QuickFilters";
-import { useSpots } from "@/hooks/useSpots";
+import { useSpotsInfinite } from "@/hooks/useSpotsInfinite";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useSpotsWithDistance } from "@/hooks/useSpotsWithDistance";
 import { useFilteredSpots } from "@/hooks/useFilteredSpots";
@@ -20,8 +20,16 @@ export default function Home() {
   });
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
 
-  // Fetch data
-  const { spots, loading: spotsLoading, error: spotsError } = useSpots();
+  // Fetch data with infinite scroll
+  const {
+    spots,
+    loading: spotsLoading,
+    loadingMore,
+    error: spotsError,
+    hasMore,
+    total,
+    loadMore,
+  } = useSpotsInfinite({ limit: 100, searchQuery });
   const { location: userLocation, status: locationStatus } = useUserLocation();
 
   // Calculate distances and apply filters
@@ -91,7 +99,7 @@ export default function Home() {
                 </span>
               </h2>
               <span className="text-sm md:text-base font-mono text-text-secondary">
-                {filteredSpots.length} {filteredSpots.length === 1 ? "spot" : "spots"}
+                {filteredSpots.length} of {total} {total === 1 ? "spot" : "spots"}
               </span>
             </div>
 
@@ -102,6 +110,25 @@ export default function Home() {
               loading={spotsLoading}
               error={spotsError}
             />
+
+            {/* Load More Button */}
+            {hasMore && !spotsLoading && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-8 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan/50 transition-all font-mono font-semibold shadow-glow-cyan disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMore ? "Loading..." : `Load More Spots (${filteredSpots.length} / ${total})`}
+                </button>
+              </div>
+            )}
+
+            {!hasMore && filteredSpots.length > 0 && (
+              <div className="mt-8 text-center text-text-secondary font-mono text-sm">
+                All spots loaded ({total} total)
+              </div>
+            )}
           </div>
         </section>
       </div>

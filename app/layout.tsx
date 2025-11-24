@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RegisterServiceWorker } from "./register-sw";
+import { Providers } from "./providers";
 import FloatingBackgroundLoader from "@/components/UI/FloatingBackgroundLoader";
 import "./globals.css";
 
@@ -62,28 +63,30 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
       <body className="antialiased h-full">
-        <FloatingBackgroundLoader />
-        <RegisterServiceWorker />
-        <div className="grid grid-rows-[auto_1fr] h-dvh relative z-10">
-          {/* Top Navigation - Auto height */}
-          <header className="sticky top-0 z-50 glass border-b border-neon-cyan/20">
-            <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-              <h1 className="text-xl font-bold uppercase tracking-wider">
-                <span className="text-neon-cyan">
-                  Outdoor Workout Spots
-                </span>
-              </h1>
-              <div className="text-xs font-mono text-text-secondary">
-                BETA
+        <Providers>
+          <FloatingBackgroundLoader />
+          <RegisterServiceWorker />
+          <div className="grid grid-rows-[auto_1fr] h-dvh relative z-10">
+            {/* Top Navigation - Auto height */}
+            <header className="sticky top-0 z-50 glass border-b border-neon-cyan/20">
+              <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+                <h1 className="text-xl font-bold uppercase tracking-wider">
+                  <span className="text-neon-cyan">
+                    Outdoor Workout Spots
+                  </span>
+                </h1>
+                <div className="text-xs font-mono text-text-secondary">
+                  BETA
+                </div>
               </div>
-            </div>
-          </header>
+            </header>
 
-          {/* Main Content - Takes remaining 1fr of viewport height */}
-          <main className="overflow-hidden">
-            {children}
-          </main>
-        </div>
+            {/* Main Content - Takes remaining 1fr of viewport height */}
+            <main className="overflow-hidden">
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

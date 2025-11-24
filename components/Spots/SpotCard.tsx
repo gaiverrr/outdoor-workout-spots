@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 import { formatDistance } from "@/lib/distance";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface SpotCardProps {
   spot: SpotWithDistance;
@@ -17,9 +15,8 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
   const equipment = spot.details?.equipment || [];
   const equipmentToShow = equipment.slice(0, 5);
   const hasMoreEquipment = equipment.length > 5;
-  const prefersReducedMotion = useReducedMotion();
 
-  const cardContent = (
+  return (
     <Link
       href={`/spots/${spot.id}`}
       className={`
@@ -101,21 +98,5 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
           </div>
         )}
       </Link>
-    );
-
-  // Conditional wrapper based on reduced motion preference
-  if (prefersReducedMotion) {
-    return <div className="h-full">{cardContent}</div>;
-  }
-
-  return (
-    <motion.div
-      whileHover={{ scale: 1.05, rotate: 2 }}
-      whileTap={{ scale: 0.95, rotate: -2 }}
-      transition={{ type: "spring" as const, stiffness: 400, damping: 17 }}
-      className="h-full"
-    >
-      {cardContent}
-    </motion.div>
   );
 }

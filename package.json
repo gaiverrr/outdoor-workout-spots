@@ -6,20 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:setup": "tsx scripts/create-schema.ts",
+    "db:migrate": "tsx scripts/migrate-to-turso.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.937.0",
+    "@libsql/client": "^0.15.15",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.0",
+    "@tanstack/react-query": "^5.90.10",
     "@types/maplibre-gl": "^1.13.2",
     "@types/three": "^0.181.0",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.23.24",
     "maplibre-gl": "^5.13.0",
     "next": "16.0.3",
+    "p-limit": "^7.2.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-map-gl": "^8.1.0",
-    "three": "^0.181.2"
+    "three": "^0.181.2",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -29,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }
