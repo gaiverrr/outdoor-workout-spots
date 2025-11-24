@@ -44,14 +44,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
 
     // Validate and parse query parameters with Zod
+    // Convert null to undefined for optional parameters
     const params = spotsQuerySchema.safeParse({
-      limit: searchParams.get("limit"),
-      offset: searchParams.get("offset"),
-      search: searchParams.get("search"),
-      minLat: searchParams.get("minLat"),
-      maxLat: searchParams.get("maxLat"),
-      minLon: searchParams.get("minLon"),
-      maxLon: searchParams.get("maxLon"),
+      limit: searchParams.get("limit") ?? undefined,
+      offset: searchParams.get("offset") ?? undefined,
+      search: searchParams.get("search") ?? undefined,
+      minLat: searchParams.get("minLat") ?? undefined,
+      maxLat: searchParams.get("maxLat") ?? undefined,
+      minLon: searchParams.get("minLon") ?? undefined,
+      maxLon: searchParams.get("maxLon") ?? undefined,
     });
 
     if (!params.success) {
