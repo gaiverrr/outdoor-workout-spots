@@ -41,7 +41,7 @@ function HomeContent() {
   const { location: userLocation, status: locationStatus } = useUserLocation();
 
   // Debounced bounds update handler (immediate first time, 500ms delay after)
-  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+  const handleBoundsChange = useCallback((bounds: MapBounds | null) => {
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);

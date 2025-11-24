@@ -18,13 +18,58 @@ export interface SpotsMapProps {
   userLocation?: Coordinates | null;
   selectedSpotId?: number | null;
   onSelectSpot?: (spotId: number) => void;
-  onBoundsChange?: (bounds: MapBounds) => void;
+  onBoundsChange?: (bounds: MapBounds | null) => void; // null = world wrap, fetch without bounds
   initialBounds?: MapBounds | null; // Initial bounds from URL state
 }
 
 const DEFAULT_CENTER: [number, number] = [0, 20]; // Centered on Europe/Africa
 const DEFAULT_ZOOM = 2;
 const SELECTED_ZOOM = 13;
+
+/**
+ * Normalize longitude to -180 to 180 range
+ */
+function normalizeLongitude(lon: number): number {
+  return ((((lon + 180) % 360) + 360) % 360) - 180;
+}
+
+/**
+ * Validate and normalize map bounds
+ * Returns null if viewport is too large (world wrap) or invalid
+ */
+function normalizeBounds(bounds: {
+  getSouth: () => number;
+  getNorth: () => number;
+  getWest: () => number;
+  getEast: () => number;
+}): MapBounds | null {
+  const minLat = bounds.getSouth();
+  const maxLat = bounds.getNorth();
+  const minLon = bounds.getWest();
+  const maxLon = bounds.getEast();
+
+  // Check if viewport spans more than 360 degrees (full world wrap or more)
+  const lonSpan = maxLon - minLon;
+  if (lonSpan >= 360) {
+    // Viewport is too large, don't apply bounds filtering
+    return null;
+  }
+
+  // Normalize longitude values to -180 to 180
+  const normalizedMinLon = normalizeLongitude(minLon);
+  const normalizedMaxLon = normalizeLongitude(maxLon);
+
+  // Clamp latitude to valid range (-90 to 90)
+  const clampedMinLat = Math.max(-90, Math.min(90, minLat));
+  const clampedMaxLat = Math.max(-90, Math.min(90, maxLat));
+
+  return {
+    minLat: clampedMinLat,
+    maxLat: clampedMaxLat,
+    minLon: normalizedMinLon,
+    maxLon: normalizedMaxLon,
+  };
+}
 
 /**
  * Calculate map center and zoom from bounds
@@ -105,12 +150,12 @@ export function SpotsMap({
     const bounds = map.getBounds();
     if (!bounds) return;
 
-    onBoundsChange({
-      minLat: bounds.getSouth(),
-      maxLat: bounds.getNorth(),
-      minLon: bounds.getWest(),
-      maxLon: bounds.getEast(),
-    });
+    // Normalize and validate bounds
+    // Returns null if viewport is too large (world wrap) - in this case we fetch without bounds
+    const normalizedBounds = normalizeBounds(bounds);
+
+    // Always call callback, even if bounds are null (world wrap)
+    onBoundsChange(normalizedBounds);
   }, [onBoundsChange]);
 
   // Handle map viewport changes (pan, zoom)

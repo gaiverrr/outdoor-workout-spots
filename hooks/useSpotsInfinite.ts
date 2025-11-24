@@ -2,6 +2,7 @@
  * Hook to fetch paginated spots using TanStack Query infinite scroll
  */
 
+import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
 import type { MapBounds } from "@/components/Map/SpotsMap";
@@ -64,6 +65,17 @@ export function useSpotsInfinite({
   searchQuery = "",
   bounds = null,
 }: UseSpotsInfiniteParams = {}) {
+  // We start with bounds as null. The query is disabled initially.
+  // Once the map loads and provides bounds (or null for world view), the query runs.
+  const [boundsInitialized, setBoundsInitialized] = React.useState(false);
+
+  React.useEffect(() => {
+    // Mark bounds as initialized once we receive the first bounds update (even if null)
+    if (!boundsInitialized) {
+      setBoundsInitialized(true);
+    }
+  }, [bounds, boundsInitialized]);
+
   const query = useInfiniteQuery({
     queryKey: ["spots", { limit, searchQuery, bounds }],
     queryFn: ({ pageParam }) => fetchSpots({ pageParam, limit, searchQuery, bounds }),
@@ -74,8 +86,9 @@ export function useSpotsInfinite({
       return undefined;
     },
     initialPageParam: 0,
-    // Only enable query after bounds are available (prevents fetching all spots on initial load)
-    enabled: bounds !== null,
+    // Enable query after bounds are initialized (first map load)
+    // This prevents the query from running before the map loads
+    enabled: boundsInitialized,
   });
 
   // Flatten all pages into a single array
