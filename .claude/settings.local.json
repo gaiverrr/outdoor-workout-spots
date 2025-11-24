@@ -25,7 +25,18 @@
       "Bash(npm uninstall:*)",
       "Bash(tar:*)",
       "Bash(npm run db:setup:*)",
-      "Bash(npm run db:migrate:*)"
+      "Bash(npm run db:migrate:*)",
+      "Bash(vercel env add:*)",
+      "Bash(vercel link:*)",
+      "Bash(vercel env:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel inspect:*)",
+      "Bash(vercel project:*)",
+      "Bash(gh run list:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []
