@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { SpotsMap } from "@/components/Map/SpotsMap";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { SpotsMap, type MapBounds } from "@/components/Map/SpotsMap";
 import { SpotsList } from "@/components/Spots/SpotsList";
 import { SearchBar } from "@/components/Search/SearchBar";
 import { QuickFilters } from "@/components/Search/QuickFilters";
@@ -19,8 +19,43 @@ export default function Home() {
     hasTrack: false,
   });
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
 
-  // Fetch data with infinite scroll
+  // Debounce timer ref and flag for first bounds update
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstBoundsUpdate = useRef(true);
+
+  const { location: userLocation, status: locationStatus } = useUserLocation();
+
+  // Debounced bounds update handler (immediate first time, 500ms delay after)
+  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // First update is immediate, subsequent updates are debounced
+    if (isFirstBoundsUpdate.current) {
+      isFirstBoundsUpdate.current = false;
+      setMapBounds(bounds);
+    } else {
+      // Set new timer for subsequent updates
+      debounceTimerRef.current = setTimeout(() => {
+        setMapBounds(bounds);
+      }, 500);
+    }
+  }, []);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Fetch data with infinite scroll and viewport filtering
   const {
     spots,
     loading: spotsLoading,
@@ -29,8 +64,7 @@ export default function Home() {
     hasMore,
     total,
     loadMore,
-  } = useSpotsInfinite({ limit: 100, searchQuery });
-  const { location: userLocation, status: locationStatus } = useUserLocation();
+  } = useSpotsInfinite({ limit: 100, searchQuery, bounds: mapBounds });
 
   // Calculate distances and apply filters
   const spotsWithDistance = useSpotsWithDistance({ spots, userLocation });
@@ -86,6 +120,7 @@ export default function Home() {
             userLocation={userLocation}
             selectedSpotId={selectedSpotId}
             onSelectSpot={setSelectedSpotId}
+            onBoundsChange={handleBoundsChange}
           />
         </section>
 

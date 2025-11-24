@@ -20,14 +20,30 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
     <Link
       href={`/spots/${spot.id}`}
       className={`
-        block glass p-4 md:p-5 lg:p-6 rounded-xl border transition-colors duration-300 h-full
+        group relative block glass p-4 md:p-5 lg:p-6 rounded-xl border h-full
+        transition-all duration-200 ease-out
+        hover:scale-[1.02] hover:-translate-y-2
+        hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4),0_0_40px_rgba(34,211,238,0.3)]
+        active:scale-[0.98] active:translate-y-0
         ${isSelected
           ? "border-neon-magenta border-glow-magenta bg-neon-magenta/5"
-          : "border-neon-cyan/20 hover:border-neon-cyan/40"
+          : "border-neon-cyan/20 hover:border-neon-cyan hover:bg-neon-cyan/5"
         }
       `}
       onClick={onClick}
     >
+      {/* Animated gradient overlay on hover */}
+      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/10 via-neon-purple/10 to-neon-magenta/10 animate-gradient" />
+      </div>
+
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      </div>
+
+      {/* Content wrapper with relative positioning */}
+      <div className="relative z-10">
         {/* Header: Title and Distance */}
         <div className="flex justify-between items-start gap-4 mb-3">
           <div className="flex-1 min-w-0">
@@ -88,15 +104,16 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 md:h-2.5 bg-elevated rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-neon-horizontal transition-all duration-500"
+                className="h-full bg-gradient-neon-horizontal transition-all duration-500 group-hover:animate-pulse"
                 style={{ width: `${spot.details.rating}%` }}
               />
             </div>
-            <span className="text-xs md:text-sm font-mono text-text-secondary font-bold">
+            <span className="text-xs md:text-sm font-mono text-text-secondary font-bold group-hover:text-neon-cyan transition-colors duration-300">
               {spot.details.rating}
             </span>
           </div>
         )}
-      </Link>
+      </div>
+    </Link>
   );
 }

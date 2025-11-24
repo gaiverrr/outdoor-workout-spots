@@ -1,16 +1,24 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
+import { useCallback, useMemo, useRef } from "react";
+import Map, { Marker, NavigationControl, type MapRef } from "react-map-gl/maplibre";
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 import type { Coordinates } from "@/hooks/useUserLocation";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+export interface MapBounds {
+  minLat: number;
+  maxLat: number;
+  minLon: number;
+  maxLon: number;
+}
 
 export interface SpotsMapProps {
   spots: SpotWithDistance[];
   userLocation?: Coordinates | null;
   selectedSpotId?: number | null;
   onSelectSpot?: (spotId: number) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
 }
 
 const DEFAULT_CENTER: [number, number] = [0, 20]; // Centered on Europe/Africa
@@ -22,7 +30,10 @@ export function SpotsMap({
   userLocation,
   selectedSpotId,
   onSelectSpot,
+  onBoundsChange,
 }: SpotsMapProps) {
+  const mapRef = useRef<MapRef>(null);
+
   // Calculate map center and zoom
   const { center, zoom } = useMemo(() => {
     if (selectedSpotId) {
@@ -55,9 +66,36 @@ export function SpotsMap({
     [onSelectSpot]
   );
 
+  // Get bounds from map and call callback
+  const updateBounds = useCallback(() => {
+    if (!mapRef.current || !onBoundsChange) return;
+
+    const map = mapRef.current.getMap();
+    const bounds = map.getBounds();
+    if (!bounds) return;
+
+    onBoundsChange({
+      minLat: bounds.getSouth(),
+      maxLat: bounds.getNorth(),
+      minLon: bounds.getWest(),
+      maxLon: bounds.getEast(),
+    });
+  }, [onBoundsChange]);
+
+  // Handle map viewport changes (pan, zoom)
+  const handleMove = useCallback(() => {
+    updateBounds();
+  }, [updateBounds]);
+
+  // Handle initial map load to get initial bounds
+  const handleLoad = useCallback(() => {
+    updateBounds();
+  }, [updateBounds]);
+
   return (
     <div className="relative w-full h-full">
       <Map
+        ref={mapRef}
         initialViewState={{
           longitude: center[0],
           latitude: center[1],
@@ -66,6 +104,8 @@ export function SpotsMap({
         style={{ width: "100%", height: "100%" }}
         mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
         attributionControl={false}
+        onMove={handleMove}
+        onLoad={handleLoad}
       >
         <NavigationControl position="top-right" />
 

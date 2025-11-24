@@ -4,6 +4,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
+import type { MapBounds } from "@/components/Map/SpotsMap";
 
 interface PaginatedResponse {
   spots: CalisthenicsSpot[];
@@ -18,16 +19,19 @@ interface PaginatedResponse {
 interface UseSpotsInfiniteParams {
   limit?: number;
   searchQuery?: string;
+  bounds?: MapBounds | null;
 }
 
 async function fetchSpots({
   pageParam = 0,
   limit,
   searchQuery,
+  bounds,
 }: {
   pageParam: number;
   limit: number;
   searchQuery?: string;
+  bounds?: MapBounds | null;
 }): Promise<PaginatedResponse> {
   const params = new URLSearchParams({
     limit: limit.toString(),
@@ -36,6 +40,14 @@ async function fetchSpots({
 
   if (searchQuery) {
     params.set("search", searchQuery);
+  }
+
+  // Add map bounds for viewport filtering
+  if (bounds) {
+    params.set("minLat", bounds.minLat.toString());
+    params.set("maxLat", bounds.maxLat.toString());
+    params.set("minLon", bounds.minLon.toString());
+    params.set("maxLon", bounds.maxLon.toString());
   }
 
   const response = await fetch(`/api/spots?${params}`);
@@ -50,10 +62,11 @@ async function fetchSpots({
 export function useSpotsInfinite({
   limit = 100,
   searchQuery = "",
+  bounds = null,
 }: UseSpotsInfiniteParams = {}) {
   const query = useInfiniteQuery({
-    queryKey: ["spots", { limit, searchQuery }],
-    queryFn: ({ pageParam }) => fetchSpots({ pageParam, limit, searchQuery }),
+    queryKey: ["spots", { limit, searchQuery, bounds }],
+    queryFn: ({ pageParam }) => fetchSpots({ pageParam, limit, searchQuery, bounds }),
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
         return lastPage.pagination.offset + lastPage.spots.length;
@@ -61,6 +74,8 @@ export function useSpotsInfinite({
       return undefined;
     },
     initialPageParam: 0,
+    // Only enable query after bounds are available (prevents fetching all spots on initial load)
+    enabled: bounds !== null,
   });
 
   // Flatten all pages into a single array
