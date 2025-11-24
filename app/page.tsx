@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, Suspense } from "react";
 import { SpotsMap, type MapBounds } from "@/components/Map/SpotsMap";
 import { SpotsList } from "@/components/Spots/SpotsList";
 import { SearchBar } from "@/components/Search/SearchBar";
@@ -9,21 +9,34 @@ import { useSpotsInfinite } from "@/hooks/useSpotsInfinite";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useSpotsWithDistance } from "@/hooks/useSpotsWithDistance";
 import { useFilteredSpots } from "@/hooks/useFilteredSpots";
+import { useUrlState } from "@/hooks/useUrlState";
 import type { FilterOptions } from "@/hooks/useFilteredSpots";
 
-export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<FilterOptions>({
-    hasBars: false,
-    hasRings: false,
-    hasTrack: false,
-  });
-  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
-  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+function HomeContent() {
+  const { getInitialState, updateUrl } = useUrlState();
 
-  // Debounce timer ref and flag for first bounds update
+  // Initialize state from URL or defaults
+  const initialState = useMemo(() => getInitialState(), [getInitialState]);
+
+  const [searchQuery, setSearchQuery] = useState(initialState.searchQuery || "");
+  const [filters, setFilters] = useState<FilterOptions>(
+    initialState.filters || {
+      hasBars: false,
+      hasRings: false,
+      hasTrack: false,
+    }
+  );
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(
+    initialState.selectedSpotId || null
+  );
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(
+    initialState.bounds || null
+  );
+
+  // Debounce timer ref and flags for first bounds update
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstBoundsUpdate = useRef(true);
+  const boundsFromUrl = useRef(!!initialState.bounds); // Track if bounds came from URL
 
   const { location: userLocation, status: locationStatus } = useUserLocation();
 
@@ -32,6 +45,13 @@ export default function Home() {
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
+    }
+
+    // If bounds came from URL, skip the first update from map to avoid overwriting
+    if (boundsFromUrl.current) {
+      boundsFromUrl.current = false;
+      isFirstBoundsUpdate.current = false;
+      return;
     }
 
     // First update is immediate, subsequent updates are debounced
@@ -45,6 +65,19 @@ export default function Home() {
       }, 500);
     }
   }, []);
+
+  // Sync state to URL when it changes
+  useEffect(() => {
+    updateUrl(
+      {
+        bounds: mapBounds,
+        searchQuery,
+        filters,
+        selectedSpotId,
+      },
+      false // debounced for map bounds
+    );
+  }, [mapBounds, searchQuery, filters, selectedSpotId, updateUrl]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -121,6 +154,7 @@ export default function Home() {
             selectedSpotId={selectedSpotId}
             onSelectSpot={setSelectedSpotId}
             onBoundsChange={handleBoundsChange}
+            initialBounds={initialState.bounds}
           />
         </section>
 
@@ -168,5 +202,13 @@ export default function Home() {
         </section>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="h-full flex items-center justify-center">Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

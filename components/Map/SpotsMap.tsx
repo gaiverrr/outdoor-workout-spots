@@ -19,11 +19,33 @@ export interface SpotsMapProps {
   selectedSpotId?: number | null;
   onSelectSpot?: (spotId: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
+  initialBounds?: MapBounds | null; // Initial bounds from URL state
 }
 
 const DEFAULT_CENTER: [number, number] = [0, 20]; // Centered on Europe/Africa
 const DEFAULT_ZOOM = 2;
 const SELECTED_ZOOM = 13;
+
+/**
+ * Calculate map center and zoom from bounds
+ */
+function getCenterFromBounds(bounds: MapBounds): { center: [number, number]; zoom: number } {
+  const centerLon = (bounds.minLon + bounds.maxLon) / 2;
+  const centerLat = (bounds.minLat + bounds.maxLat) / 2;
+
+  // Rough zoom estimation based on latitude span
+  const latSpan = bounds.maxLat - bounds.minLat;
+  let zoom = DEFAULT_ZOOM;
+  if (latSpan < 0.01) zoom = 15;
+  else if (latSpan < 0.05) zoom = 13;
+  else if (latSpan < 0.2) zoom = 11;
+  else if (latSpan < 1) zoom = 9;
+  else if (latSpan < 5) zoom = 7;
+  else if (latSpan < 20) zoom = 5;
+  else if (latSpan < 50) zoom = 3;
+
+  return { center: [centerLon, centerLat], zoom };
+}
 
 export function SpotsMap({
   spots,
@@ -31,11 +53,13 @@ export function SpotsMap({
   selectedSpotId,
   onSelectSpot,
   onBoundsChange,
+  initialBounds,
 }: SpotsMapProps) {
   const mapRef = useRef<MapRef>(null);
 
   // Calculate map center and zoom
   const { center, zoom } = useMemo(() => {
+    // Priority 1: Selected spot (zoom to specific location)
     if (selectedSpotId) {
       const selectedSpot = spots.find((s) => s.id === selectedSpotId);
       if (selectedSpot?.lat != null && selectedSpot?.lon != null) {
@@ -46,6 +70,12 @@ export function SpotsMap({
       }
     }
 
+    // Priority 2: Initial bounds from URL (restored state)
+    if (initialBounds) {
+      return getCenterFromBounds(initialBounds);
+    }
+
+    // Priority 3: User location
     if (userLocation) {
       return {
         center: [userLocation.lon, userLocation.lat] as [number, number],
@@ -53,11 +83,12 @@ export function SpotsMap({
       };
     }
 
+    // Priority 4: Default world view
     return {
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
     };
-  }, [userLocation, selectedSpotId, spots]);
+  }, [userLocation, selectedSpotId, spots, initialBounds]);
 
   const handleMarkerClick = useCallback(
     (spotId: number) => {
