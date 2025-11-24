@@ -7,7 +7,16 @@ import { SpotDetailClient } from "./SpotDetailClient";
 const dataset = spotsData as CalisthenicsParksDataset;
 const spots = dataset.spots;
 
+// Allow rendering pages that weren't pre-generated
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
+  // Only generate static pages for production builds
+  // For preview/dev, use on-demand rendering to speed up builds
+  if (process.env.VERCEL_ENV !== 'production') {
+    return [];
+  }
+
   return spots.map((spot) => ({
     id: spot.id.toString(),
   }));
