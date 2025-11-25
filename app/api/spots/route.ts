@@ -71,6 +71,10 @@ export async function GET(request: NextRequest) {
     let sql = "SELECT * FROM spots WHERE 1=1";
     const args: (string | number)[] = [];
 
+    // Calculate viewport center for distance-based ordering
+    let centerLat: number | undefined;
+    let centerLon: number | undefined;
+
     // Filter by map bounds if all coordinates provided and valid
     if (
       minLat !== undefined &&
@@ -80,6 +84,10 @@ export async function GET(request: NextRequest) {
     ) {
       sql += " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?";
       args.push(minLat, maxLat, minLon, maxLon);
+
+      // Calculate center point for ordering
+      centerLat = (minLat + maxLat) / 2;
+      centerLon = (minLon + maxLon) / 2;
     }
 
     // Filter by search query
@@ -87,6 +95,16 @@ export async function GET(request: NextRequest) {
       sql += " AND (title LIKE ? OR address LIKE ?)";
       const searchTerm = `%${search}%`;
       args.push(searchTerm, searchTerm);
+    }
+
+    // Order by distance from viewport center (prioritize spots near center)
+    // Use squared distance approximation to avoid expensive SQRT
+    if (centerLat !== undefined && centerLon !== undefined) {
+      sql += ` ORDER BY ((lat - ?) * (lat - ?)) + ((lon - ?) * (lon - ?)) ASC`;
+      args.push(centerLat, centerLat, centerLon, centerLon);
+    } else {
+      // Fallback: order by ID for consistent pagination when no bounds
+      sql += " ORDER BY id ASC";
     }
 
     // Add pagination
