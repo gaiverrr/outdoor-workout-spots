@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { checkRateLimit } from "@/lib/rate-limit";
 import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
 
 export const dynamic = "force-dynamic";
+
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+  ...(process.env.ALLOWED_ORIGINS?.split(",").map(o => o.trim()) || []),
+];
+
+// Helper to get allowed origin
+function getAllowedOrigin(requestOrigin: string | null): string | null {
+  if (!requestOrigin) {
+    return null;
+  }
+
+  // Allow exact matches
+  if (ALLOWED_ORIGINS.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+
+  // In development, allow any localhost port
+  if (process.env.NODE_ENV === "development" && requestOrigin.startsWith("http://localhost:")) {
+    return requestOrigin;
+  }
+
+  return null;
+}
 
 // Zod schema for query parameter validation
 const spotsQuerySchema = z.object({
@@ -19,28 +45,6 @@ const spotsQuerySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting (100 requests per minute per IP)
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-    const rateLimit = checkRateLimit(ip, { limit: 100, window: 60 * 1000 });
-
-    if (!rateLimit.success) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Limit": "100",
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": new Date(rateLimit.reset).toISOString(),
-            "Retry-After": String(Math.ceil((rateLimit.reset - Date.now()) / 1000)),
-          },
-        }
-      );
-    }
-
     const searchParams = request.nextUrl.searchParams;
 
     // Validate and parse query parameters with Zod
@@ -98,7 +102,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Order by distance from viewport center (prioritize spots near center)
-    // Use squared distance approximation to avoid expensive SQRT
+    // Note: This uses a simplified squared Euclidean distance approximation.
+    // It does NOT account for:
+    // - Earth's curvature (spherical geometry)
+    // - Latitude scaling (longitude degrees are shorter at higher latitudes)
+    // This is intentional for performance - the approximation is "good enough"
+    // for sorting spots within a viewport. For precise distances, use the
+    // client-side Haversine calculation in useSpotsWithDistance hook.
     if (centerLat !== undefined && centerLon !== undefined) {
       sql += ` ORDER BY ((lat - ?) * (lat - ?)) + ((lon - ?) * (lon - ?)) ASC`;
       args.push(centerLat, centerLat, centerLon, centerLon);
@@ -107,14 +117,31 @@ export async function GET(request: NextRequest) {
       sql += " ORDER BY id ASC";
     }
 
-    // Add pagination
+    // Add pagination - fetch limit+1 to determine if there are more results
     sql += " LIMIT ? OFFSET ?";
-    args.push(limit, offset);
+    args.push(limit + 1, offset);
 
     const result = await db.execute({ sql, args });
 
+    // Check if there are more results
+    const hasMore = result.rows.length > limit;
+
+    // Only return 'limit' number of spots (trim the extra one if present)
+    const rowsToTransform = result.rows.slice(0, limit);
+
+    // Helper to safely parse JSON fields
+    const safeJsonParse = <T>(value: unknown, fallback: T = undefined as T): T => {
+      if (!value) return fallback;
+      try {
+        return JSON.parse(String(value)) as T;
+      } catch (error) {
+        console.error("JSON parse error for value:", value, error);
+        return fallback;
+      }
+    };
+
     // Transform rows to CalisthenicsSpot format
-    const spots: CalisthenicsSpot[] = result.rows.map((row) => ({
+    const spots: CalisthenicsSpot[] = rowsToTransform.map((row) => ({
       id: Number(row.id),
       title: String(row.title),
       name: row.name ? String(row.name) : null,
@@ -122,37 +149,14 @@ export async function GET(request: NextRequest) {
       lon: row.lon !== null ? Number(row.lon) : undefined,
       address: row.address ? String(row.address) : undefined,
       details: {
-        equipment: row.equipment ? JSON.parse(String(row.equipment)) : undefined,
-        disciplines: row.disciplines ? JSON.parse(String(row.disciplines)) : undefined,
+        equipment: safeJsonParse<string[]>(row.equipment),
+        disciplines: safeJsonParse<string[]>(row.disciplines),
         description: row.description ? String(row.description) : undefined,
         features: row.features_type ? { type: String(row.features_type) } : undefined,
-        images: row.images ? JSON.parse(String(row.images)) : undefined,
+        images: safeJsonParse<string[]>(row.images),
         rating: row.rating !== null ? Number(row.rating) : undefined,
       },
     }));
-
-    // Get total count (for pagination UI)
-    let countSql = "SELECT COUNT(*) as total FROM spots WHERE 1=1";
-    const countArgs: (string | number)[] = [];
-
-    if (
-      minLat !== undefined &&
-      maxLat !== undefined &&
-      minLon !== undefined &&
-      maxLon !== undefined
-    ) {
-      countSql += " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?";
-      countArgs.push(minLat, maxLat, minLon, maxLon);
-    }
-
-    if (search) {
-      countSql += " AND (title LIKE ? OR address LIKE ?)";
-      const searchTerm = `%${search}%`;
-      countArgs.push(searchTerm, searchTerm);
-    }
-
-    const countResult = await db.execute({ sql: countSql, args: countArgs });
-    const total = Number(countResult.rows[0]?.total) || 0;
 
     const response = NextResponse.json(
       {
@@ -160,24 +164,23 @@ export async function GET(request: NextRequest) {
         pagination: {
           limit,
           offset,
-          total,
-          hasMore: offset + spots.length < total,
+          hasMore,
         },
       },
       {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-          "X-RateLimit-Limit": "100",
-          "X-RateLimit-Remaining": String(rateLimit.remaining),
-          "X-RateLimit-Reset": new Date(rateLimit.reset).toISOString(),
         },
       }
     );
 
-    // Add CORS headers (allow same-origin by default)
-    response.headers.set("Access-Control-Allow-Origin", request.headers.get("origin") || "*");
-    response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    // Add CORS headers with origin allowlist
+    const allowedOrigin = getAllowedOrigin(request.headers.get("origin"));
+    if (allowedOrigin) {
+      response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+      response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+      response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    }
 
     return response;
   } catch (error) {
@@ -191,13 +194,20 @@ export async function GET(request: NextRequest) {
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: NextRequest) {
+  const allowedOrigin = getAllowedOrigin(request.headers.get("origin"));
+
+  const headers: HeadersInit = {
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400", // 24 hours
+  };
+
+  if (allowedOrigin) {
+    headers["Access-Control-Allow-Origin"] = allowedOrigin;
+  }
+
   return new NextResponse(null, {
     status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Max-Age": "86400", // 24 hours
-    },
+    headers,
   });
 }

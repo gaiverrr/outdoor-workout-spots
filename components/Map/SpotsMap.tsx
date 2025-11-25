@@ -29,8 +29,23 @@ const SELECTED_ZOOM = 13;
 
 /**
  * Normalize longitude to -180 to 180 range
+ *
+ * Formula explanation:
+ * 1. (lon + 180): Shift to [0, 360) range
+ * 2. % 360: Take modulo to wrap around
+ * 3. + 360: Handle negative results from modulo
+ * 4. % 360: Ensure positive result
+ * 5. - 180: Shift back to [-180, 180) range
+ *
+ * Note: For extremely large values (> 1e15), floating point precision
+ * may cause inaccuracies, but MapLibre GL won't return such values.
  */
 function normalizeLongitude(lon: number): number {
+  // Sanity check for unreasonable values
+  if (!isFinite(lon)) {
+    return 0;
+  }
+
   return ((((lon + 180) % 360) + 360) % 360) - 180;
 }
 

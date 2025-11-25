@@ -40,7 +40,8 @@
       "Bash(vercel logs:*)",
       "Bash(gh run view:*)",
       "Bash(curl:*)",
-      "Bash(time curl:*)"
+      "Bash(time curl:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

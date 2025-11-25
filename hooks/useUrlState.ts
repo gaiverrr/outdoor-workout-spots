@@ -53,19 +53,32 @@ function serializeState(state: Partial<UrlState>): URLSearchParams {
 function deserializeState(params: URLSearchParams): Partial<UrlState> {
   const state: Partial<UrlState> = {};
 
-  // Map bounds (only if all params present)
-  const minLat = params.get("minLat");
-  const maxLat = params.get("maxLat");
-  const minLon = params.get("minLon");
-  const maxLon = params.get("maxLon");
+  // Map bounds (only if all params present and valid)
+  const minLatStr = params.get("minLat");
+  const maxLatStr = params.get("maxLat");
+  const minLonStr = params.get("minLon");
+  const maxLonStr = params.get("maxLon");
 
-  if (minLat && maxLat && minLon && maxLon) {
-    state.bounds = {
-      minLat: parseFloat(minLat),
-      maxLat: parseFloat(maxLat),
-      minLon: parseFloat(minLon),
-      maxLon: parseFloat(maxLon),
-    };
+  if (minLatStr && maxLatStr && minLonStr && maxLonStr) {
+    const parsedMinLat = parseFloat(minLatStr);
+    const parsedMaxLat = parseFloat(maxLatStr);
+    const parsedMinLon = parseFloat(minLonStr);
+    const parsedMaxLon = parseFloat(maxLonStr);
+
+    // Validate all are valid numbers before setting bounds
+    if (
+      !isNaN(parsedMinLat) &&
+      !isNaN(parsedMaxLat) &&
+      !isNaN(parsedMinLon) &&
+      !isNaN(parsedMaxLon)
+    ) {
+      state.bounds = {
+        minLat: parsedMinLat,
+        maxLat: parsedMaxLat,
+        minLon: parsedMinLon,
+        maxLon: parsedMaxLon,
+      };
+    }
   }
 
   // Search query
@@ -100,11 +113,12 @@ export function useUrlState() {
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
-   * Get initial state from URL on mount
+   * Get initial state from URL on mount (memoized to avoid recalculation)
+   * Note: We deliberately don't include searchParams in dependencies to prevent
+   * recreating initial state on every URL change - we only want it on mount
    */
-  const getInitialState = useCallback((): Partial<UrlState> => {
-    return deserializeState(searchParams);
-  }, [searchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialState = useMemo(() => deserializeState(searchParams), []);
 
   /**
    * Update URL with new state (debounced for performance)
@@ -147,7 +161,7 @@ export function useUrlState() {
   }, []);
 
   return {
-    getInitialState,
+    initialState,
     updateUrl,
   };
 }
