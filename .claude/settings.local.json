@@ -38,7 +38,9 @@
       "Bash(git commit:*)",
       "Bash(gh pr view:*)",
       "Bash(vercel logs:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(curl:*)",
+      "Bash(time curl:*)"
     ],
     "deny": [],
     "ask": []

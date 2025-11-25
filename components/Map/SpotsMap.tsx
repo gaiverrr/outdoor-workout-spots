@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useRef } from "react";
-import Map, { Marker, NavigationControl, type MapRef } from "react-map-gl/maplibre";
+import Map, { Marker, Popup, NavigationControl, type MapRef } from "react-map-gl/maplibre";
+import Link from "next/link";
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 import type { Coordinates } from "@/hooks/useUserLocation";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -17,7 +18,7 @@ export interface SpotsMapProps {
   spots: SpotWithDistance[];
   userLocation?: Coordinates | null;
   selectedSpotId?: number | null;
-  onSelectSpot?: (spotId: number) => void;
+  onSelectSpot?: (spotId: number | null) => void;
   onBoundsChange?: (bounds: MapBounds | null) => void; // null = world wrap, fetch without bounds
   initialBounds?: MapBounds | null; // Initial bounds from URL state
 }
@@ -245,6 +246,75 @@ export function SpotsMap({
             </Marker>
           );
         })}
+
+        {/* Popup for selected spot */}
+        {selectedSpotId && (() => {
+          const selectedSpot = spots.find((s) => s.id === selectedSpotId);
+          if (!selectedSpot?.lat || !selectedSpot?.lon) return null;
+
+          return (
+            <Popup
+              longitude={selectedSpot.lon}
+              latitude={selectedSpot.lat}
+              anchor="bottom"
+              offset={40}
+              onClose={() => onSelectSpot?.(null)}
+              closeButton={true}
+              closeOnClick={false}
+              className="spot-popup"
+            >
+              <div className="p-3 min-w-[200px] max-w-[280px]">
+                {/* Title */}
+                <h3 className="text-base font-bold text-white mb-2 line-clamp-2">
+                  {selectedSpot.title}
+                </h3>
+
+                {/* Address */}
+                {selectedSpot.address && (
+                  <p className="text-xs text-text-dim mb-2 line-clamp-2">
+                    📍 {selectedSpot.address}
+                  </p>
+                )}
+
+                {/* Distance */}
+                {selectedSpot.distanceKm != null && (
+                  <p className="text-xs text-neon-cyan mb-2">
+                    📏 {selectedSpot.distanceKm.toFixed(1)} km away
+                  </p>
+                )}
+
+                {/* Rating */}
+                {selectedSpot.details?.rating && (
+                  <div className="flex items-center gap-1 mb-3">
+                    <span className="text-xs">⭐</span>
+                    <span className="text-xs text-neon-lime font-semibold">
+                      {selectedSpot.details.rating}/5
+                    </span>
+                  </div>
+                )}
+
+                {/* View Details Button */}
+                <Link
+                  href={`/spots/${selectedSpot.id}`}
+                  className="group relative block w-full text-center text-sm font-semibold py-3 px-4 rounded-lg
+                    glass border border-neon-cyan/20
+                    hover:border-neon-cyan hover:bg-neon-cyan/5
+                    text-white transition-all duration-200
+                    hover:scale-[1.02] hover:shadow-[0_10px_30px_-10px_rgba(34,211,238,0.4)]
+                    active:scale-[0.98]"
+                >
+                  {/* Animated gradient overlay on hover */}
+                  <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/10 via-neon-purple/10 to-neon-magenta/10 animate-gradient" />
+                  </div>
+
+                  {/* Button text */}
+                  <span className="relative z-10">View Details →</span>
+                </Link>
+              </div>
+            </Popup>
+          );
+        })()}
       </Map>
 
       {/* Map attribution */}

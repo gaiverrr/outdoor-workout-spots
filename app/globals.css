@@ -42,10 +42,6 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-dim: var(--text-dim);
 
-  /* Fonts */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
   /* Custom spacing for mobile-first */
   --spacing-safe-top: env(safe-area-inset-top);
   --spacing-safe-bottom: env(safe-area-inset-bottom);
@@ -192,4 +188,51 @@ body {
   );
   background-size: 300% 300%;
   animation: gradient-rotate 3s ease infinite;
+}
+
+/* MapLibre Popup Styling */
+.maplibregl-popup {
+  max-width: 320px !important;
+  z-index: 50;
+}
+
+.maplibregl-popup-content {
+  background: var(--bg-elevated) !important;
+  border: 2px solid var(--neon-magenta) !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  box-shadow:
+    0 0 20px rgba(255, 0, 255, 0.4),
+    0 0 40px rgba(255, 0, 255, 0.2),
+    0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.maplibregl-popup-close-button {
+  color: var(--neon-magenta) !important;
+  font-size: 24px !important;
+  padding: 4px 8px !important;
+  right: 4px !important;
+  top: 4px !important;
+  background: rgba(255, 0, 255, 0.1) !important;
+  border-radius: 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease !important;
+  border: 1px solid transparent !important;
+}
+
+.maplibregl-popup-close-button:hover {
+  background: rgba(255, 0, 255, 0.2) !important;
+  border-color: var(--neon-magenta) !important;
+  transform: scale(1.1);
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--neon-magenta) !important;
+  border-bottom-color: var(--neon-magenta) !important;
 }
