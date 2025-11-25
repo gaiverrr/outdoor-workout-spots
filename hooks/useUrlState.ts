@@ -4,7 +4,7 @@
  */
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 import type { MapBounds } from "@/components/Map/SpotsMap";
 import type { FilterOptions } from "@/hooks/useFilteredSpots";
 

@@ -13,10 +13,10 @@ import { useUrlState } from "@/hooks/useUrlState";
 import type { FilterOptions } from "@/hooks/useFilteredSpots";
 
 function HomeContent() {
-  const { getInitialState, updateUrl } = useUrlState();
+  const { initialState: urlState, updateUrl } = useUrlState();
 
   // Initialize state from URL or defaults
-  const initialState = useMemo(() => getInitialState(), [getInitialState]);
+  const initialState = urlState;
 
   const [searchQuery, setSearchQuery] = useState(initialState.searchQuery || "");
   const [filters, setFilters] = useState<FilterOptions>(
