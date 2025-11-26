@@ -175,11 +175,20 @@ export async function GET(request: NextRequest) {
     );
 
     // Add CORS headers with origin allowlist
-    const allowedOrigin = getAllowedOrigin(request.headers.get("origin"));
+    const requestOrigin = request.headers.get("origin");
+    const allowedOrigin = getAllowedOrigin(requestOrigin);
+
     if (allowedOrigin) {
       response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
       response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
       response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    } else if (requestOrigin) {
+      // Log rejected origins in development for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`CORS: Rejected origin "${requestOrigin}". Add to ALLOWED_ORIGINS env var if needed.`);
+      }
+      // Note: We don't set CORS headers for disallowed origins
+      // The browser will block the request, which is the desired behavior
     }
 
     return response;
@@ -194,7 +203,8 @@ export async function GET(request: NextRequest) {
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: NextRequest) {
-  const allowedOrigin = getAllowedOrigin(request.headers.get("origin"));
+  const requestOrigin = request.headers.get("origin");
+  const allowedOrigin = getAllowedOrigin(requestOrigin);
 
   const headers: HeadersInit = {
     "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -204,6 +214,8 @@ export async function OPTIONS(request: NextRequest) {
 
   if (allowedOrigin) {
     headers["Access-Control-Allow-Origin"] = allowedOrigin;
+  } else if (requestOrigin && process.env.NODE_ENV === "development") {
+    console.warn(`CORS OPTIONS: Rejected origin "${requestOrigin}"`);
   }
 
   return new NextResponse(null, {

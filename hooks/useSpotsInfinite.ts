@@ -12,7 +12,6 @@ interface PaginatedResponse {
   pagination: {
     limit: number;
     offset: number;
-    total: number;
     hasMore: boolean;
   };
 }
@@ -93,12 +92,10 @@ export function useSpotsInfinite({
 
   // Flatten all pages into a single array
   const spots = query.data?.pages.flatMap((page) => page.spots) ?? [];
-  const total = query.data?.pages[0]?.pagination.total ?? 0;
   const hasMore = query.hasNextPage ?? false;
 
   return {
     spots,
-    total,
     hasMore,
     loading: query.isLoading,
     loadingMore: query.isFetchingNextPage,

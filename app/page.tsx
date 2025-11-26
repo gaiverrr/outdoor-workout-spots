@@ -95,7 +95,6 @@ function HomeContent() {
     loadingMore,
     error: spotsError,
     hasMore,
-    total,
     loadMore,
   } = useSpotsInfinite({ limit: 100, searchQuery, bounds: mapBounds });
 
@@ -168,7 +167,8 @@ function HomeContent() {
                 </span>
               </h2>
               <span className="text-sm md:text-base font-mono text-text-secondary">
-                {filteredSpots.length} of {total} {total === 1 ? "spot" : "spots"}
+                {filteredSpots.length} {filteredSpots.length === 1 ? "spot" : "spots"}
+                {hasMore && " (scroll for more)"}
               </span>
             </div>
 
@@ -188,14 +188,14 @@ function HomeContent() {
                   disabled={loadingMore}
                   className="px-8 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan/50 transition-all font-mono font-semibold shadow-glow-cyan disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loadingMore ? "Loading..." : `Load More Spots (${filteredSpots.length} / ${total})`}
+                  {loadingMore ? "Loading..." : "Load More Spots"}
                 </button>
               </div>
             )}
 
             {!hasMore && filteredSpots.length > 0 && (
               <div className="mt-8 text-center text-text-secondary font-mono text-sm">
-                All spots loaded ({total} total)
+                All spots loaded ({filteredSpots.length} shown)
               </div>
             )}
           </div>
