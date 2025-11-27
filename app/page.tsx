@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { SpotsMap } from "@/components/Map/SpotsMap";
+import { useState, useCallback, useRef, useEffect, useMemo, Suspense } from "react";
+import { SpotsMap, type MapBounds } from "@/components/Map/SpotsMap";
 import { SpotsList } from "@/components/Spots/SpotsList";
 import { SearchBar } from "@/components/Search/SearchBar";
 import { QuickFilters } from "@/components/Search/QuickFilters";
@@ -9,28 +9,94 @@ import { useSpotsInfinite } from "@/hooks/useSpotsInfinite";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useSpotsWithDistance } from "@/hooks/useSpotsWithDistance";
 import { useFilteredSpots } from "@/hooks/useFilteredSpots";
+import { useUrlState } from "@/hooks/useUrlState";
 import type { FilterOptions } from "@/hooks/useFilteredSpots";
 
-export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<FilterOptions>({
-    hasBars: false,
-    hasRings: false,
-    hasTrack: false,
-  });
-  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
+function HomeContent() {
+  const { initialState: urlState, updateUrl } = useUrlState();
 
-  // Fetch data with infinite scroll
+  // Initialize state from URL or defaults
+  const initialState = urlState;
+
+  const [searchQuery, setSearchQuery] = useState(initialState.searchQuery || "");
+  const [filters, setFilters] = useState<FilterOptions>(
+    initialState.filters || {
+      hasBars: false,
+      hasRings: false,
+      hasTrack: false,
+    }
+  );
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(
+    initialState.selectedSpotId || null
+  );
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(
+    initialState.bounds || null
+  );
+
+  // Debounce timer ref and flags for first bounds update
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstBoundsUpdate = useRef(true);
+  const boundsFromUrl = useRef(!!initialState.bounds); // Track if bounds came from URL
+
+  const { location: userLocation, status: locationStatus } = useUserLocation();
+
+  // Debounced bounds update handler (immediate first time, 500ms delay after)
+  const handleBoundsChange = useCallback((bounds: MapBounds | null) => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // If bounds came from URL, skip the first update from map to avoid overwriting
+    if (boundsFromUrl.current) {
+      boundsFromUrl.current = false;
+      isFirstBoundsUpdate.current = false;
+      return;
+    }
+
+    // First update is immediate, subsequent updates are debounced
+    if (isFirstBoundsUpdate.current) {
+      isFirstBoundsUpdate.current = false;
+      setMapBounds(bounds);
+    } else {
+      // Set new timer for subsequent updates
+      debounceTimerRef.current = setTimeout(() => {
+        setMapBounds(bounds);
+      }, 500);
+    }
+  }, []);
+
+  // Sync state to URL when it changes
+  useEffect(() => {
+    updateUrl(
+      {
+        bounds: mapBounds,
+        searchQuery,
+        filters,
+        selectedSpotId,
+      },
+      false // debounced for map bounds
+    );
+  }, [mapBounds, searchQuery, filters, selectedSpotId, updateUrl]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Fetch data with infinite scroll and viewport filtering
   const {
     spots,
     loading: spotsLoading,
     loadingMore,
     error: spotsError,
     hasMore,
-    total,
     loadMore,
-  } = useSpotsInfinite({ limit: 100, searchQuery });
-  const { location: userLocation, status: locationStatus } = useUserLocation();
+  } = useSpotsInfinite({ limit: 100, searchQuery, bounds: mapBounds });
 
   // Calculate distances and apply filters
   const spotsWithDistance = useSpotsWithDistance({ spots, userLocation });
@@ -86,6 +152,8 @@ export default function Home() {
             userLocation={userLocation}
             selectedSpotId={selectedSpotId}
             onSelectSpot={setSelectedSpotId}
+            onBoundsChange={handleBoundsChange}
+            initialBounds={initialState.bounds}
           />
         </section>
 
@@ -99,7 +167,8 @@ export default function Home() {
                 </span>
               </h2>
               <span className="text-sm md:text-base font-mono text-text-secondary">
-                {filteredSpots.length} of {total} {total === 1 ? "spot" : "spots"}
+                {filteredSpots.length} {filteredSpots.length === 1 ? "spot" : "spots"}
+                {hasMore && " (scroll for more)"}
               </span>
             </div>
 
@@ -119,19 +188,27 @@ export default function Home() {
                   disabled={loadingMore}
                   className="px-8 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan/50 transition-all font-mono font-semibold shadow-glow-cyan disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loadingMore ? "Loading..." : `Load More Spots (${filteredSpots.length} / ${total})`}
+                  {loadingMore ? "Loading..." : "Load More Spots"}
                 </button>
               </div>
             )}
 
             {!hasMore && filteredSpots.length > 0 && (
               <div className="mt-8 text-center text-text-secondary font-mono text-sm">
-                All spots loaded ({total} total)
+                All spots loaded ({filteredSpots.length} shown)
               </div>
             )}
           </div>
         </section>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="h-full flex items-center justify-center">Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
