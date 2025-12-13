@@ -3,7 +3,7 @@
  * Groups nearby spots into clusters at low zoom levels for better performance and UX
  */
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import Supercluster from "supercluster";
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 
@@ -50,6 +50,8 @@ export interface ClusterPoint {
 
 export interface SpotPoint {
   type: "spot";
+  lat: number;
+  lon: number;
   spot: SpotWithDistance;
 }
 
@@ -79,6 +81,9 @@ const CLUSTER_OPTIONS: Supercluster.Options<SpotFeature["properties"], ClusterFe
   minZoom: 0,
   minPoints: 2, // Minimum points to form a cluster
 };
+
+// Maximum zoom level when expanding clusters (prevents over-zooming)
+const MAX_EXPANSION_ZOOM = 16;
 
 export function useMapClusters({
   spots,
@@ -145,15 +150,21 @@ export function useMapClusters({
       } else {
         return {
           type: "spot",
+          lat,
+          lon,
           spot: feature.properties.spot,
         };
       }
     });
   }, [supercluster, bounds, zoom]);
 
-  // Function to get zoom level needed to expand a cluster
-  const expandCluster = useMemo(() => {
-    return (clusterId: number) => {
+  /**
+   * Expands a cluster to reveal its children spots
+   * @param clusterId - The cluster ID from supercluster
+   * @returns The center coordinates and zoom level to expand to, or null if expansion fails
+   */
+  const expandCluster = useCallback(
+    (clusterId: number) => {
       if (!supercluster) return null;
 
       try {
@@ -173,13 +184,17 @@ export function useMapClusters({
         return {
           lat: sumLat / children.length,
           lon: sumLon / children.length,
-          zoom: Math.min(expansionZoom, 16), // Cap at zoom 16
+          zoom: Math.min(expansionZoom, MAX_EXPANSION_ZOOM),
         };
-      } catch {
+      } catch (error) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to expand cluster:", clusterId, error);
+        }
         return null;
       }
-    };
-  }, [supercluster]);
+    },
+    [supercluster]
+  );
 
   return {
     points,

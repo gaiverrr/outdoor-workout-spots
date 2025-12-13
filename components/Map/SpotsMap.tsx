@@ -204,8 +204,9 @@ export function SpotsMap({
       );
     }
 
+    // Use requestAnimationFrame for better performance than setTimeout
     if (initialBounds) {
-      setTimeout(() => updateBoundsAndZoom(), 50);
+      requestAnimationFrame(() => updateBoundsAndZoom());
     } else {
       updateBoundsAndZoom();
     }
@@ -279,17 +280,15 @@ export function SpotsMap({
             );
           }
 
-          // Individual spot marker
-          const spot = point.spot;
-          if (spot.lat == null || spot.lon == null) return null;
-
+          // Individual spot marker - use point.lat/lon from clustering (already validated)
+          const { spot, lat, lon } = point;
           const isSelected = spot.id === selectedSpotId;
 
           return (
             <Marker
-              key={spot.id}
-              longitude={spot.lon}
-              latitude={spot.lat}
+              key={`spot-${spot.id}`}
+              longitude={lon}
+              latitude={lat}
               anchor="bottom"
               onClick={() => handleMarkerClick(spot.id)}
             >
