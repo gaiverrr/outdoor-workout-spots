@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "db:setup": "tsx scripts/create-schema.ts",
-    "db:migrate": "tsx scripts/migrate-to-turso.ts"
+    "db:migrate": "tsx scripts/migrate-to-turso.ts",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report",
+    "test:install": "npx playwright install --with-deps"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",
@@ -32,6 +37,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
