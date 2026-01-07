@@ -41,7 +41,19 @@
       "Bash(gh run view:*)",
       "Bash(curl:*)",
       "Bash(time curl:*)",
-      "Bash(cat:*)"
+      "Bash(gh pr view:*)",
+      "Bash(vercel logs:*)",
+      "Bash(gh run view:*)",
+      "Bash(curl:*)",
+      "Bash(time curl:*)",
+      "Bash(cat:*)",
+      "Bash(gh issue create:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "WebSearch",
+      "WebFetch(domain:nominatim.org)",
+      "Bash(/opt/homebrew/bin/node ./node_modules/.bin/next lint:*)",
+      "Bash(/opt/homebrew/bin/node:*)",
+      "Bash(npm view:*)"
     ],
     "deny": [],
     "ask": []
