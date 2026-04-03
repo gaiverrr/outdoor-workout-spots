@@ -18,7 +18,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
   const [state, setState] = useState<SheetState>("peek");
   const [dragging, setDragging] = useState(false);
   const [translateY, setTranslateY] = useState(9999);
-  const initialized = useRef(false);
+  const [initialized, setInitialized] = useState(false);
   const dragStartY = useRef(0);
   const dragStartTranslate = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -41,9 +41,12 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
     [getHeightForState]
   );
 
+  // Initialize position after mount (needs window.innerHeight).
+  // setState in effect is intentional — we need window dimensions unavailable during SSR.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- needs window.innerHeight, unavailable at render
     setTranslateY(getTranslateForState("peek"));
-    initialized.current = true;
+    setInitialized(true);
   }, [getTranslateForState]);
 
   const handleTouchStart = useCallback(
@@ -94,7 +97,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
     <div
       ref={sheetRef}
       className={`md:hidden fixed inset-x-0 bottom-0 z-20 bg-app border-t border-border rounded-t-2xl flex flex-col
-        ${dragging || !initialized.current ? "" : "transition-transform duration-300 ease-out"}`}
+        ${dragging || !initialized ? "" : "transition-transform duration-300 ease-out"}`}
       style={{
         transform: `translateY(${translateY}px)`,
         height: "90vh",
