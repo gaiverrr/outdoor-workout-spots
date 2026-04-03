@@ -112,13 +112,12 @@ function createBot(token: string): Bot {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  // Verify Telegram webhook secret if configured
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (secret) {
-    const incoming = request.headers.get("x-telegram-bot-api-secret-token");
-    if (incoming !== secret) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+  if (!secret) {
+    return new Response("Webhook secret not configured", { status: 500 });
+  }
+  if (request.headers.get("x-telegram-bot-api-secret-token") !== secret) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const token = process.env.TELEGRAM_BOT_TOKEN;
