@@ -91,7 +91,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
   return (
     <div
       ref={sheetRef}
-      className={`md:hidden fixed inset-x-0 bottom-0 z-20 bg-app border-t border-border rounded-t-2xl
+      className={`md:hidden fixed inset-x-0 bottom-0 z-20 bg-app border-t border-border rounded-t-2xl flex flex-col
         ${dragging ? "" : "transition-transform duration-300 ease-out"}`}
       style={{
         transform: `translateY(${translateY}px)`,
@@ -101,7 +101,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
       data-state={state}
     >
       <div
-        className="flex flex-col items-center py-3 cursor-grab active:cursor-grabbing touch-none"
+        className="flex flex-col items-center py-3 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -114,10 +114,10 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
       </div>
 
       {header && (
-        <div className="px-3 pb-2 border-b border-border">{header}</div>
+        <div className="px-3 pb-2 border-b border-border flex-shrink-0">{header}</div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-3 pb-safe-bottom">
+      <div className="flex-1 overflow-y-auto px-3 pb-safe-bottom min-h-0">
         {children}
       </div>
     </div>

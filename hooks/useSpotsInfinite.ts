@@ -3,7 +3,7 @@
  */
 
 import React from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query";
 import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
 import type { MapBounds } from "@/components/Map/SpotsMap";
 
@@ -88,6 +88,8 @@ export function useSpotsInfinite({
     // Enable query after bounds are initialized (first map load)
     // This prevents the query from running before the map loads
     enabled: boundsInitialized,
+    // Keep showing previous data while new query (e.g. after map zoom) is loading
+    placeholderData: keepPreviousData,
   });
 
   // Flatten all pages into a single array
