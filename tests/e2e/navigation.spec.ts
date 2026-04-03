@@ -9,8 +9,8 @@ test.describe("Navigation — Back Button State Preservation", () => {
     await input.fill("Berlin");
     await page.waitForTimeout(500);
 
-    await page.goto("/spots/1");
-    await page.getByTestId("spot-title").waitFor({ timeout: 10000 });
+    await page.goto("/spots/83");
+    await page.getByTestId("spot-title").waitFor({ timeout: 15000 });
 
     await page.goBack();
     await page.waitForTimeout(500);
@@ -24,7 +24,7 @@ test.describe("Navigation — Back Button State Preservation", () => {
     const input = page.getByTestId("search-input").first();
     await expect(input).toHaveValue("Berlin");
 
-    await page.goto("/spots/1");
+    await page.goto("/spots/83");
     await page.goBack();
     await page.waitForTimeout(500);
 
