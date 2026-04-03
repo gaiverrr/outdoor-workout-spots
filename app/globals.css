@@ -104,6 +104,19 @@ body {
 }
 
 
+/* GeolocateControl — lift above bottom sheet on mobile */
+.maplibregl-ctrl-bottom-right {
+  bottom: 100px !important;
+  right: 12px !important;
+}
+
+@media (min-width: 768px) {
+  .maplibregl-ctrl-bottom-right {
+    bottom: 10px !important;
+    right: 10px !important;
+  }
+}
+
 @keyframes slideUp {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
