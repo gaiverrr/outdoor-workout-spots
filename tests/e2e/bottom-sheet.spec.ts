@@ -18,8 +18,8 @@ test.describe("Bottom Sheet (Mobile)", () => {
 
   test("content area is scrollable", async ({ page }) => {
     await page.goto("/");
-    // Wait for spots to load
-    await page.waitForTimeout(3000);
+    // Wait for spots to load via API
+    await page.waitForResponse(resp => resp.url().includes('/api/spots') && resp.status() === 200, { timeout: 10000 }).catch(() => {});
 
     const content = page.getByTestId("bottom-sheet-content");
     // Verify the content div has overflow-y auto and min-h-0 (scrollable setup)

@@ -19,7 +19,8 @@ test.describe("Map", () => {
   test("displays spot markers after loading", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("spots-map").locator("canvas").waitFor({ timeout: 15000 });
-    await page.waitForTimeout(3000);
+    // Wait for spots API response instead of arbitrary timeout
+    await page.waitForResponse(resp => resp.url().includes('/api/spots') && resp.status() === 200, { timeout: 10000 }).catch(() => {});
     const markers = page.locator("[aria-label*='spot'], [aria-label*='Cluster'], [aria-label^='View ']");
     await expect(markers.first()).toBeVisible({ timeout: 10000 });
   });
