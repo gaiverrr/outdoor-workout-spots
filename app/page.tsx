@@ -11,6 +11,8 @@ import { useSpotsWithDistance } from "@/hooks/useSpotsWithDistance";
 import { useFilteredSpots } from "@/hooks/useFilteredSpots";
 import { useUrlState } from "@/hooks/useUrlState";
 import type { FilterOptions } from "@/hooks/useFilteredSpots";
+import { BottomSheet } from "@/components/BottomSheet";
+import { SpotPreview } from "@/components/SpotPreview";
 
 function HomeContent() {
   const { initialState: urlState, updateUrl } = useUrlState();
@@ -173,7 +175,39 @@ function HomeContent() {
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
             <QuickFilters filters={filters} onChange={setFilters} />
           </div>
+
+          {/* Mobile spot preview */}
+          {selectedSpotId && (() => {
+            const previewSpot = filteredSpots.find((s) => s.id === selectedSpotId);
+            return previewSpot ? (
+              <SpotPreview spot={previewSpot} onClose={() => setSelectedSpotId(null)} />
+            ) : null;
+          })()}
         </div>
+
+        {/* Mobile bottom sheet */}
+        <BottomSheet spotCount={filteredSpots.length}>
+          <SpotsList
+            spots={filteredSpots}
+            selectedSpotId={selectedSpotId}
+            onSelectSpot={setSelectedSpotId}
+            loading={spotsLoading}
+            error={spotsError}
+          />
+          {hasMore && !spotsLoading && (
+            <div className="mt-4 mb-4 flex justify-center">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-6 py-2 text-sm font-medium bg-elevated border border-border
+                  rounded-lg text-text-secondary hover:text-text-primary transition-colors duration-150
+                  disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load More"}
+              </button>
+            </div>
+          )}
+        </BottomSheet>
       </div>
     </div>
   );

@@ -102,3 +102,9 @@ body {
   border-top-color: var(--border) !important;
   border-bottom-color: var(--border) !important;
 }
+
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
