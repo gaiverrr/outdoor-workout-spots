@@ -90,14 +90,30 @@ function createBot(token: string): Bot {
 
     await ctx.reply(
       `📍 5 nearest workout spots:\n\n${lines.join("\n\n")}`,
-      { link_preview_options: { is_disabled: true } }
+      {
+        link_preview_options: { is_disabled: true },
+        reply_markup: {
+          inline_keyboard: [[{
+            text: "🗺 Show on Map",
+            web_app: { url: `${APP_URL}/?lat=${latitude}&lng=${longitude}&z=12` },
+          }]],
+        },
+      }
     );
   });
 
   bot.on("message", async (ctx) => {
     await ctx.reply(
       "Send me your 📍 location and I'll find the 5 nearest workout spots!\n\n" +
-        "Tap the 📎 attachment button → Location → Send your current location."
+        "Tap the 📎 attachment button → Location → Send your current location.",
+      {
+        reply_markup: {
+          inline_keyboard: [[{
+            text: "🗺 Open Map",
+            web_app: { url: APP_URL },
+          }]],
+        },
+      }
     );
   });
 
