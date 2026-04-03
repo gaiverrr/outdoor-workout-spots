@@ -6,6 +6,7 @@ interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
   close: () => void;
+  initData: string;
   BackButton: {
     show: () => void;
     hide: () => void;
@@ -35,7 +36,8 @@ export function useTelegramWebApp(): UseTelegramWebAppReturn {
 
   useEffect(() => {
     const webApp = window.Telegram?.WebApp;
-    if (webApp) {
+    // initData is non-empty only when running inside an actual Telegram client
+    if (webApp && webApp.initData) {
       webAppRef.current = webApp;
       setIsTWA(true);
       webApp.ready();
