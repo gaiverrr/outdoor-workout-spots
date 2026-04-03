@@ -15,80 +15,69 @@ import type { FilterOptions } from "@/hooks/useFilteredSpots";
 function HomeContent() {
   const { initialState: urlState, updateUrl } = useUrlState();
 
-  // Initialize state from URL or defaults
-  const initialState = urlState;
-
-  const [searchQuery, setSearchQuery] = useState(initialState.searchQuery || "");
+  const [searchQuery, setSearchQuery] = useState(urlState.searchQuery || "");
   const [filters, setFilters] = useState<FilterOptions>(
-    initialState.filters || {
-      hasBars: false,
-      hasRings: false,
-      hasTrack: false,
-    }
+    urlState.filters || { hasBars: false, hasRings: false, hasTrack: false }
   );
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(
-    initialState.selectedSpotId || null
+    urlState.selectedSpotId || null
   );
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(
-    initialState.bounds || null
+    urlState.bounds || null
   );
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(
+    urlState.mapCenter || null
+  );
+  const [mapZoom, setMapZoom] = useState<number | null>(urlState.mapZoom || null);
 
-  // Debounce timer ref and flags for first bounds update
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstBoundsUpdate = useRef(true);
-  const boundsFromUrl = useRef(!!initialState.bounds); // Track if bounds came from URL
+  const boundsFromUrl = useRef(!!urlState.bounds);
 
-  const { location: userLocation, status: locationStatus } = useUserLocation();
+  const { location: userLocation, status: locationStatus, requestLocation } = useUserLocation();
 
-  // Debounced bounds update handler (immediate first time, 500ms delay after)
   const handleBoundsChange = useCallback((bounds: MapBounds | null) => {
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
-    // If bounds came from URL, skip the first update from map to avoid overwriting
     if (boundsFromUrl.current) {
       boundsFromUrl.current = false;
       isFirstBoundsUpdate.current = false;
       return;
     }
 
-    // First update is immediate, subsequent updates are debounced
     if (isFirstBoundsUpdate.current) {
       isFirstBoundsUpdate.current = false;
       setMapBounds(bounds);
     } else {
-      // Set new timer for subsequent updates
-      debounceTimerRef.current = setTimeout(() => {
-        setMapBounds(bounds);
-      }, 500);
+      debounceTimerRef.current = setTimeout(() => setMapBounds(bounds), 500);
     }
   }, []);
 
-  // Sync state to URL when it changes
-  useEffect(() => {
-    updateUrl(
-      {
-        bounds: mapBounds,
-        searchQuery,
-        filters,
-        selectedSpotId,
-      },
-      false // debounced for map bounds
-    );
-  }, [mapBounds, searchQuery, filters, selectedSpotId, updateUrl]);
+  const handleViewportChange = useCallback(
+    (center: { lat: number; lng: number }, zoom: number) => {
+      setMapCenter(center);
+      setMapZoom(zoom);
+    },
+    []
+  );
 
-  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    updateUrl({
+      bounds: mapBounds,
+      searchQuery,
+      filters,
+      selectedSpotId,
+      mapCenter,
+      mapZoom,
+    });
+  }, [mapBounds, searchQuery, filters, selectedSpotId, mapCenter, mapZoom, updateUrl]);
+
   useEffect(() => {
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, []);
 
-  // Fetch data with infinite scroll and viewport filtering
   const {
     spots,
     loading: spotsLoading,
@@ -98,80 +87,49 @@ function HomeContent() {
     loadMore,
   } = useSpotsInfinite({ limit: 100, searchQuery, bounds: mapBounds });
 
-  // Calculate distances and apply filters
   const spotsWithDistance = useSpotsWithDistance({ spots, userLocation });
-  const filteredSpots = useFilteredSpots({
-    spots: spotsWithDistance,
-    searchQuery,
-    filters,
-  });
+  const filteredSpots = useFilteredSpots({ spots: spotsWithDistance, searchQuery, filters });
 
   return (
-    <div className="h-full grid grid-rows-[auto_1fr]">
-      {/* Header: Search Bar, Filters, Status - Auto height */}
-      <header className="bg-surface border-b border-neon-magenta/20">
-        {/* Search Bar Section */}
-        <div className="border-b border-neon-magenta/20 p-4">
-          <div className="container mx-auto max-w-7xl">
+    <div className="h-full flex flex-col">
+      {/* Top bar: search + filters — visible on desktop, hidden on mobile */}
+      <div className="hidden md:block bg-surface border-b border-border">
+        <div className="flex items-center gap-4 px-4 py-3">
+          <div className="w-80 flex-shrink-0">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
-        </div>
-
-        {/* Quick Filters */}
-        <div className="border-b border-neon-magenta/20 p-4">
-          <div className="container mx-auto max-w-7xl">
-            <QuickFilters filters={filters} onChange={setFilters} />
+          <QuickFilters filters={filters} onChange={setFilters} />
+          <div className="ml-auto flex items-center gap-3">
+            {locationStatus === "idle" && (
+              <button
+                onClick={requestLocation}
+                className="px-3 py-2 text-sm text-text-secondary hover:text-text-primary
+                  bg-elevated border border-border rounded-lg transition-colors duration-150"
+                data-testid="locate-me"
+              >
+                📍 Locate me
+              </button>
+            )}
+            {locationStatus === "loading" && (
+              <span className="text-sm text-accent-secondary">Locating...</span>
+            )}
+            <span className="text-sm text-text-dim">
+              {filteredSpots.length} spots
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Location Status Banner */}
-        {locationStatus === "loading" && (
-          <div className="bg-neon-cyan/10 border-b border-neon-cyan/30 px-4 py-2">
-            <p className="text-sm text-neon-cyan text-center font-mono">
-              📍 Getting your location...
-            </p>
+      {/* Main content: sidebar + map */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop sidebar */}
+        <aside className="hidden md:flex md:flex-col w-[360px] flex-shrink-0 border-r border-border bg-app overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <h2 className="text-sm font-semibold text-text-primary">
+              {userLocation ? "Nearby Spots" : "All Spots"}
+            </h2>
           </div>
-        )}
-        {locationStatus === "denied" && (
-          <div className="bg-neon-magenta/10 border-b border-neon-magenta/30 px-4 py-2">
-            <p className="text-sm text-neon-magenta text-center font-mono">
-              ⚠️ Location access denied - showing all spots
-            </p>
-          </div>
-        )}
-      </header>
-
-      {/* Main Content: Responsive Grid Layout - Takes remaining 1fr height */}
-      {/* Mobile: Stacked vertically with natural scroll (map 50vh, list below) */}
-      {/* Tablet/Desktop: Side-by-side with fixed map and scrollable list */}
-      <div className="overflow-y-auto md:overflow-hidden flex flex-col md:grid md:grid-cols-2 lg:grid-cols-[3fr_2fr] xl:grid-cols-[11fr_9fr]">
-        {/* Map Section - 50vh on mobile, full height on desktop */}
-        <section className="h-[50vh] md:h-full flex-shrink-0 bg-elevated border-b md:border-b-0 md:border-r border-neon-cyan/20 relative overflow-hidden">
-          <SpotsMap
-            spots={filteredSpots}
-            userLocation={userLocation}
-            selectedSpotId={selectedSpotId}
-            onSelectSpot={setSelectedSpotId}
-            onBoundsChange={handleBoundsChange}
-            initialBounds={initialState.bounds}
-          />
-        </section>
-
-        {/* Spots List Section - Flows naturally on mobile, scrollable column on desktop */}
-        <section className="flex-shrink-0 md:h-full md:overflow-y-auto p-4 md:p-6 lg:p-8">
-          <div className="container mx-auto max-w-4xl">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
-                <span className="text-glow-magenta">
-                  {userLocation ? "Nearby Spots" : "All Spots"}
-                </span>
-              </h2>
-              <span className="text-sm md:text-base font-mono text-text-secondary">
-                {filteredSpots.length} {filteredSpots.length === 1 ? "spot" : "spots"}
-                {hasMore && " (scroll for more)"}
-              </span>
-            </div>
-
+          <div className="flex-1 overflow-y-auto p-3">
             <SpotsList
               spots={filteredSpots}
               selectedSpotId={selectedSpotId}
@@ -179,27 +137,43 @@ function HomeContent() {
               loading={spotsLoading}
               error={spotsError}
             />
-
-            {/* Load More Button */}
             {hasMore && !spotsLoading && (
-              <div className="mt-8 flex justify-center">
+              <div className="mt-4 flex justify-center">
                 <button
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="px-8 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan/50 transition-all font-mono font-semibold shadow-glow-cyan disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 text-sm font-medium bg-elevated border border-border
+                    rounded-lg text-text-secondary hover:text-text-primary hover:border-border-hover
+                    transition-colors duration-150 disabled:opacity-50"
+                  data-testid="load-more"
                 >
-                  {loadingMore ? "Loading..." : "Load More Spots"}
+                  {loadingMore ? "Loading..." : "Load More"}
                 </button>
               </div>
             )}
-
-            {!hasMore && filteredSpots.length > 0 && (
-              <div className="mt-8 text-center text-text-secondary font-mono text-sm">
-                All spots loaded ({filteredSpots.length} shown)
-              </div>
-            )}
           </div>
-        </section>
+        </aside>
+
+        {/* Map: full remaining space */}
+        <div className="flex-1 relative">
+          <SpotsMap
+            spots={filteredSpots}
+            userLocation={userLocation}
+            selectedSpotId={selectedSpotId}
+            onSelectSpot={setSelectedSpotId}
+            onBoundsChange={handleBoundsChange}
+            onViewportChange={handleViewportChange}
+            initialBounds={urlState.bounds}
+            initialCenter={urlState.mapCenter}
+            initialZoom={urlState.mapZoom}
+          />
+
+          {/* Mobile: search overlay on top of map */}
+          <div className="md:hidden absolute top-0 left-0 right-0 z-10 p-3 space-y-2">
+            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            <QuickFilters filters={filters} onChange={setFilters} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -207,7 +181,13 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="h-full flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="h-full flex items-center justify-center bg-app">
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
       <HomeContent />
     </Suspense>
   );
