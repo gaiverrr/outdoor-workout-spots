@@ -20,7 +20,7 @@ test.describe("GeolocateControl visibility", () => {
     await page.setViewportSize({ width: 393, height: 851 });
     await page.goto("/");
     await page.getByTestId("spots-map").locator("canvas").waitFor({ timeout: 15000 });
-    await page.waitForTimeout(1000);
+    await page.waitForResponse(resp => resp.url().includes('/api/spots') && resp.status() === 200, { timeout: 10000 }).catch(() => {});
 
     const btn = page.locator(".maplibregl-ctrl-geolocate");
     await expect(btn).toBeVisible();
@@ -37,7 +37,7 @@ test.describe("GeolocateControl visibility", () => {
     await page.setViewportSize({ width: 393, height: 430 });
     await page.goto("/");
     await page.getByTestId("spots-map").locator("canvas").waitFor({ timeout: 15000 });
-    await page.waitForTimeout(1000);
+    await page.waitForResponse(resp => resp.url().includes('/api/spots') && resp.status() === 200, { timeout: 10000 }).catch(() => {});
 
     const btn = page.locator(".maplibregl-ctrl-geolocate");
     await expect(btn).toBeVisible();
