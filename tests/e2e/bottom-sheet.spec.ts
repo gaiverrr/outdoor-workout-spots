@@ -15,4 +15,15 @@ test.describe("Bottom Sheet (Mobile)", () => {
     const handle = page.getByTestId("bottom-sheet-handle");
     await expect(handle).toContainText(/\d+ spots nearby/);
   });
+
+  test("content area is scrollable", async ({ page }) => {
+    await page.goto("/");
+    // Wait for spots to load
+    await page.waitForTimeout(3000);
+
+    const content = page.getByTestId("bottom-sheet-content");
+    // Verify the content div has overflow-y auto and min-h-0 (scrollable setup)
+    await expect(content).toHaveCSS("overflow-y", "auto");
+    await expect(content).toHaveCSS("min-height", "0px");
+  });
 });

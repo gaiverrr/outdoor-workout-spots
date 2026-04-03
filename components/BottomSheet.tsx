@@ -117,7 +117,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
         <div className="px-3 pb-2 border-b border-border flex-shrink-0">{header}</div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-3 pb-safe-bottom min-h-0">
+      <div className="flex-1 overflow-y-auto px-3 pb-safe-bottom min-h-0" data-testid="bottom-sheet-content">
         {children}
       </div>
     </div>
