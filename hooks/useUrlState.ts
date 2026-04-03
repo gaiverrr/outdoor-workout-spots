@@ -13,6 +13,8 @@ export interface UrlState {
   searchQuery: string;
   filters: FilterOptions;
   selectedSpotId: number | null;
+  mapCenter: { lat: number; lng: number } | null;
+  mapZoom: number | null;
 }
 
 /**
@@ -27,6 +29,15 @@ function serializeState(state: Partial<UrlState>): URLSearchParams {
     params.set("maxLat", state.bounds.maxLat.toFixed(6));
     params.set("minLon", state.bounds.minLon.toFixed(6));
     params.set("maxLon", state.bounds.maxLon.toFixed(6));
+  }
+
+  // Map center and zoom
+  if (state.mapCenter) {
+    params.set("lat", state.mapCenter.lat.toFixed(6));
+    params.set("lng", state.mapCenter.lng.toFixed(6));
+  }
+  if (state.mapZoom != null) {
+    params.set("z", state.mapZoom.toFixed(1));
   }
 
   // Search query
@@ -78,6 +89,24 @@ function deserializeState(params: URLSearchParams): Partial<UrlState> {
         minLon: parsedMinLon,
         maxLon: parsedMaxLon,
       };
+    }
+  }
+
+  // Map center and zoom
+  const lat = params.get("lat");
+  const lng = params.get("lng");
+  const z = params.get("z");
+  if (lat && lng) {
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
+    if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+      state.mapCenter = { lat: parsedLat, lng: parsedLng };
+    }
+  }
+  if (z) {
+    const parsedZ = parseFloat(z);
+    if (!isNaN(parsedZ)) {
+      state.mapZoom = parsedZ;
     }
   }
 
