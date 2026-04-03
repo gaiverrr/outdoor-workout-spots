@@ -33,4 +33,20 @@ test.describe("Telegram Webhook API", () => {
     });
     expect(res.status()).toBeLessThanOrEqual(500);
   });
+
+  test("webhook endpoint is reachable", async ({ request }) => {
+    const res = await request.post(WEBHOOK_URL, {
+      data: {
+        update_id: 3,
+        message: {
+          message_id: 3,
+          chat: { id: 456, type: "private" },
+          date: Math.floor(Date.now() / 1000),
+          text: "test",
+        },
+      },
+    });
+    // Without TELEGRAM_WEBHOOK_SECRET set, requests should not get 401
+    expect(res.status()).not.toBe(401);
+  });
 });

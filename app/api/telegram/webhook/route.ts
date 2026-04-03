@@ -4,6 +4,15 @@ import { formatDistance } from "@/lib/distance";
 
 const APP_URL = process.env.APP_URL || "https://workoutspots.app";
 
+let botInstance: Bot | null = null;
+
+function getOrCreateBot(token: string): Bot {
+  if (!botInstance) {
+    botInstance = createBot(token);
+  }
+  return botInstance;
+}
+
 interface SpotRow {
   id: number;
   title: string;
@@ -121,12 +130,21 @@ function createBot(token: string): Bot {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  // Verify Telegram webhook secret if configured
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (secret) {
+    const incoming = request.headers.get("x-telegram-bot-api-secret-token");
+    if (incoming !== secret) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  }
+
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     return new Response("TELEGRAM_BOT_TOKEN not configured", { status: 500 });
   }
 
-  const bot = createBot(token);
+  const bot = getOrCreateBot(token);
   const handler = webhookCallback(bot, "std/http");
   return handler(request);
 }
