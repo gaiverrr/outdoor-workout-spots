@@ -11,8 +11,10 @@ import { useFilteredSpots } from "@/hooks/useFilteredSpots";
 import { useUrlState } from "@/hooks/useUrlState";
 import { BottomSheet } from "@/components/BottomSheet";
 import { SpotPreview } from "@/components/SpotPreview";
+import { useTelegramWebApp } from "@/hooks/useTelegramWebApp";
 
 function HomeContent() {
+  const { isTWA } = useTelegramWebApp();
   const { initialState: urlState, updateUrl } = useUrlState();
 
   const [searchQuery, setSearchQuery] = useState(urlState.searchQuery || "");
@@ -165,13 +167,15 @@ function HomeContent() {
             initialZoom={urlState.mapZoom}
           />
 
-          {/* Mobile: search overlay on top of map */}
-          <div className="md:hidden absolute top-0 left-0 right-0 z-10 p-3 space-y-2">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          {/* Mobile: search overlay on top of map (hidden in TWA) */}
+          {!isTWA && (
+            <div className="md:hidden absolute top-0 left-0 right-0 z-10 p-3 space-y-2">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </div>
+          )}
 
-          {/* Mobile spot preview */}
-          {selectedSpotId && (() => {
+          {/* Mobile spot preview (hidden in TWA) */}
+          {!isTWA && selectedSpotId && (() => {
             const previewSpot = filteredSpots.find((s) => s.id === selectedSpotId);
             return previewSpot ? (
               <SpotPreview spot={previewSpot} onClose={() => setSelectedSpotId(null)} />
@@ -179,8 +183,8 @@ function HomeContent() {
           })()}
         </div>
 
-        {/* Mobile bottom sheet */}
-        <BottomSheet spotCount={filteredSpots.length}>
+        {/* Mobile bottom sheet (hidden in TWA) */}
+        {!isTWA && <BottomSheet spotCount={filteredSpots.length}>
           <SpotsList
             spots={filteredSpots}
             selectedSpotId={selectedSpotId}
@@ -201,7 +205,7 @@ function HomeContent() {
               </button>
             </div>
           )}
-        </BottomSheet>
+        </BottomSheet>}
       </div>
     </div>
   );

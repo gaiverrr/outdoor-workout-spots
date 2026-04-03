@@ -117,6 +117,12 @@ body {
   }
 }
 
+/* In TWA: no bottom sheet, so keep default position */
+.twa .maplibregl-ctrl-bottom-right {
+  bottom: 10px !important;
+  right: 10px !important;
+}
+
 @keyframes slideUp {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }

@@ -42,6 +42,7 @@ export function useTelegramWebApp(): UseTelegramWebAppReturn {
       setIsTWA(true);
       webApp.ready();
       webApp.expand();
+      document.documentElement.classList.add("twa");
     }
   }, []);
 
