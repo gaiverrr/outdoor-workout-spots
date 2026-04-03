@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "outdoor_workout_spots",
+  "project_id": "74c3c8b7-9193-4203-9c4d-863396228d0b"
+}
