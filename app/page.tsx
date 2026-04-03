@@ -93,7 +93,7 @@ function HomeContent() {
   const filteredSpots = useFilteredSpots({ spots: spotsWithDistance, searchQuery, filters });
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Top bar: search + filters — visible on desktop, hidden on mobile */}
       <div className="hidden md:block bg-surface border-b border-border">
         <div className="flex items-center gap-4 px-4 py-3">

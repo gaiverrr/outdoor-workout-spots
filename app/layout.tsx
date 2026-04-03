@@ -59,7 +59,7 @@ export default function RootLayout({
       <body className="antialiased h-full">
         <Providers>
           <RegisterServiceWorker />
-          <main className="h-dvh overflow-hidden">{children}</main>
+          <main className="h-dvh">{children}</main>
         </Providers>
       </body>
     </html>
