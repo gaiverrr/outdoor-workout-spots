@@ -32,7 +32,13 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
       {/* Sticky header */}
       <header className="sticky top-0 z-10 bg-app/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/");
+            }
+          }}
           className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
           data-testid="back-button"
         >
