@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { SpotWithDistance } from "@/hooks/useSpotsWithDistance";
 import { formatDistance } from "@/lib/distance";
 
@@ -32,9 +33,11 @@ export function SpotPreview({ spot, onClose }: SpotPreviewProps) {
       <div className="flex gap-3 p-3">
         {firstImage && (
           <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-elevated">
-            <img
+            <Image
               src={firstImage}
               alt={spot.title}
+              width={80}
+              height={80}
               className="w-full h-full object-cover"
             />
           </div>

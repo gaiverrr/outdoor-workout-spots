@@ -19,6 +19,7 @@ test.describe("Telegram Web App", () => {
     await page.route("**/telegram-web-app.js", (route) => route.fulfill({ body: "" }));
 
     await page.addInitScript(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).Telegram = {
         WebApp: {
           ready: () => {},

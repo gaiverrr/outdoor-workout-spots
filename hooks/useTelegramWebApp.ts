@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 
 interface TelegramWebApp {
   ready: () => void;
@@ -30,17 +30,26 @@ interface UseTelegramWebAppReturn {
   hideBackButton: () => void;
 }
 
+function getIsTWA(): boolean {
+  if (typeof window === "undefined") return false;
+  const webApp = window.Telegram?.WebApp;
+  return !!(webApp && webApp.initData);
+}
+
+function subscribe() {
+  // TWA status never changes after page load — no-op subscriber
+  return () => {};
+}
+
 export function useTelegramWebApp(): UseTelegramWebAppReturn {
-  const [isTWA, setIsTWA] = useState(false);
+  const isTWA = useSyncExternalStore(subscribe, getIsTWA, () => false);
   const webAppRef = useRef<TelegramWebApp | null>(null);
   const callbackRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const webApp = window.Telegram?.WebApp;
-    // initData is non-empty only when running inside an actual Telegram client
     if (webApp && webApp.initData) {
       webAppRef.current = webApp;
-      setIsTWA(true);
       webApp.ready();
       webApp.expand();
       document.documentElement.classList.add("twa");
