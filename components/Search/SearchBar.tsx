@@ -1,43 +1,50 @@
 "use client";
 
-export interface SearchBarProps {
+interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
 }
 
-export function SearchBar({
-  value,
-  onChange,
-  placeholder = "Search by city or address...",
-}: SearchBarProps) {
+export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <div className="relative">
-      <div className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-text-dim text-lg md:text-xl pointer-events-none">
-        🔍
-      </div>
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-dim"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="
-          w-full px-4 py-3 md:px-5 md:py-4 pl-12 md:pl-14 bg-elevated border-2 border-neon-cyan/30
-          rounded-xl text-base md:text-lg text-text-primary placeholder:text-text-dim
-          focus:outline-none focus:border-neon-cyan focus:border-glow-cyan
-          transition-all duration-300
-          font-medium
-        "
+        placeholder="Search by city or address..."
+        className="w-full pl-10 pr-10 py-3 bg-surface border border-border rounded-lg
+          text-text-primary placeholder:text-text-dim
+          focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent
+          transition-colors duration-150"
+        data-testid="search-input"
       />
       {value && (
         <button
           onClick={() => onChange("")}
-          className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2
-                     text-text-dim hover:text-neon-magenta transition-all duration-300
-                     text-lg md:text-xl hover:scale-110"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6
+            flex items-center justify-center rounded-full
+            text-text-dim hover:text-text-primary hover:bg-elevated
+            transition-colors duration-150"
           aria-label="Clear search"
+          data-testid="search-clear"
         >
-          ✕
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       )}
     </div>

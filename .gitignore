@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/playwright/.auth/
 
 # next.js
 /.next/
@@ -43,3 +46,17 @@ next-env.d.ts
 
 # real-data backups and images (stored in Cloudflare R2 and Turso DB)
 /real-data/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/
+
+# Claude local settings
+.claude/settings.local.json
+
+# Playwright MCP and skill artifacts
+.playwright-mcp/
+.skills/
+*.skill

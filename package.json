@@ -8,19 +8,21 @@
     "start": "next start",
     "lint": "eslint",
     "db:setup": "tsx scripts/create-schema.ts",
-    "db:migrate": "tsx scripts/migrate-to-turso.ts"
+    "db:migrate": "tsx scripts/migrate-to-turso.ts",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report",
+    "test:install": "npx playwright install --with-deps"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",
     "@libsql/client": "^0.15.15",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.4.0",
     "@tanstack/react-query": "^5.90.10",
     "@types/maplibre-gl": "^1.13.2",
     "@types/supercluster": "^7.1.3",
-    "@types/three": "^0.181.0",
     "dotenv": "^17.2.3",
-    "framer-motion": "^12.23.24",
+    "grammy": "^1.41.1",
     "maplibre-gl": "^5.13.0",
     "next": "^16.0.10",
     "p-limit": "^7.2.0",
@@ -28,10 +30,10 @@
     "react-dom": "19.2.0",
     "react-map-gl": "^8.1.0",
     "supercluster": "^8.0.1",
-    "three": "^0.181.2",
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

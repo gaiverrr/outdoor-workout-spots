@@ -1,58 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark background colors */
-  --bg-app: #0a0a0f;
-  --bg-surface: #13131a;
-  --bg-elevated: #1a1a24;
+  /* Dark athletic backgrounds */
+  --bg-app: #0f1117;
+  --bg-surface: #1a1d27;
+  --bg-elevated: #242836;
 
-  /* Neon colors for crazy design */
-  --neon-cyan: #00f0ff;
-  --neon-magenta: #ff00ff;
-  --neon-purple: #9d00ff;
-  --neon-blue: #0066ff;
-  --neon-lime: #ccff00;
+  /* Accent colors */
+  --accent: #FF6B35;
+  --accent-hover: #FF8555;
+  --accent-secondary: #4A9EFF;
 
   /* Text colors */
-  --text-primary: #ffffff;
-  --text-secondary: #b4b4c8;
-  --text-dim: #7a7a8e;
+  --text-primary: #F0F0F5;
+  --text-secondary: #9CA3AF;
+  --text-dim: #6B7280;
 
-  /* Gradient stops */
-  --gradient-start: var(--neon-cyan);
-  --gradient-mid: var(--neon-magenta);
-  --gradient-end: var(--neon-purple);
+  /* Borders */
+  --border: #2A2E3A;
+  --border-hover: #3A3F4E;
 }
 
 @theme inline {
-  /* Background colors */
   --color-app: var(--bg-app);
   --color-surface: var(--bg-surface);
   --color-elevated: var(--bg-elevated);
-
-  /* Neon accent colors */
-  --color-neon-cyan: var(--neon-cyan);
-  --color-neon-magenta: var(--neon-magenta);
-  --color-neon-purple: var(--neon-purple);
-  --color-neon-blue: var(--neon-blue);
-  --color-neon-lime: var(--neon-lime);
-
-  /* Text colors */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-secondary: var(--accent-secondary);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-dim: var(--text-dim);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
 
-  /* Custom spacing for mobile-first */
   --spacing-safe-top: env(safe-area-inset-top);
   --spacing-safe-bottom: env(safe-area-inset-bottom);
 }
 
 html {
-  /* Prevent text size adjustment on mobile */
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Enable smooth scrolling */
   scroll-behavior: smooth;
 }
 
@@ -60,137 +49,23 @@ body {
   background: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  min-height: 100vh;
-  min-height: 100dvh; /* Use dynamic viewport height on mobile */
+  min-height: 100dvh;
   overflow-x: hidden;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom utility classes for crazy design */
-.text-glow {
-  text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-}
-
-.text-glow-cyan {
-  text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);
-}
-
-.text-glow-magenta {
-  text-shadow: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta), 0 0 40px var(--neon-magenta);
-}
-
-.border-glow {
-  box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-}
-
-.border-glow-cyan {
-  box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan), inset 0 0 10px rgba(0, 240, 255, 0.1);
-}
-
-.border-glow-magenta {
-  box-shadow: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta), inset 0 0 10px rgba(255, 0, 255, 0.1);
-}
-
-.bg-gradient-neon {
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
-}
-
-.bg-gradient-neon-horizontal {
-  background: linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
-}
-
-/* Animated gradient background */
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.bg-gradient-animated {
-  background: linear-gradient(270deg, var(--neon-cyan), var(--neon-magenta), var(--neon-purple), var(--neon-blue));
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-}
-
-/* Pulse animation for interactive elements */
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02);
-  }
-}
-
-.pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Card tilt effect for crazy design */
-.card-tilt {
-  transform: rotate(-0.5deg);
-  transition: transform 0.3s ease;
-}
-
-.card-tilt:hover {
-  transform: rotate(0deg) scale(1.02);
-}
-
-/* Glass morphism effect */
-.glass {
-  background: rgba(19, 19, 26, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Hide scrollbar but keep functionality */
+/* Scrollbar hiding */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Animated gradient for card hover effects */
-@keyframes gradient-rotate {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--neon-cyan),
-    var(--neon-purple),
-    var(--neon-magenta),
-    var(--neon-blue),
-    var(--neon-cyan)
-  );
-  background-size: 300% 300%;
-  animation: gradient-rotate 3s ease infinite;
-}
-
-/* MapLibre Popup Styling */
+/* MapLibre Popup Styling — dark athletic */
 .maplibregl-popup {
   max-width: 320px !important;
   z-index: 50;
@@ -198,41 +73,57 @@ body {
 
 .maplibregl-popup-content {
   background: var(--bg-elevated) !important;
-  border: 2px solid var(--neon-magenta) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 12px !important;
   padding: 0 !important;
-  box-shadow:
-    0 0 20px rgba(255, 0, 255, 0.4),
-    0 0 40px rgba(255, 0, 255, 0.2),
-    0 4px 20px rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 .maplibregl-popup-close-button {
-  color: var(--neon-magenta) !important;
-  font-size: 24px !important;
+  color: var(--text-secondary) !important;
+  font-size: 20px !important;
   padding: 4px 8px !important;
   right: 4px !important;
   top: 4px !important;
-  background: rgba(255, 0, 255, 0.1) !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   width: 28px !important;
   height: 28px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 0.3s ease !important;
-  border: 1px solid transparent !important;
+  transition: background 150ms ease !important;
 }
 
 .maplibregl-popup-close-button:hover {
-  background: rgba(255, 0, 255, 0.2) !important;
-  border-color: var(--neon-magenta) !important;
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .maplibregl-popup-tip {
-  border-top-color: var(--neon-magenta) !important;
-  border-bottom-color: var(--neon-magenta) !important;
+  border-top-color: var(--border) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+
+/* GeolocateControl — lift above bottom sheet on mobile */
+.maplibregl-ctrl-bottom-right {
+  bottom: 100px !important;
+  right: 12px !important;
+}
+
+@media (min-width: 768px) {
+  .maplibregl-ctrl-bottom-right {
+    bottom: 10px !important;
+    right: 10px !important;
+  }
+}
+
+/* In TWA: no bottom sheet, so keep default position */
+.twa .maplibregl-ctrl-bottom-right {
+  bottom: 10px !important;
+  right: 10px !important;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
