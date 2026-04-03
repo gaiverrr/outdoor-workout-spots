@@ -17,7 +17,8 @@ const FULL_RATIO = 0.9;
 export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProps) {
   const [state, setState] = useState<SheetState>("peek");
   const [dragging, setDragging] = useState(false);
-  const [translateY, setTranslateY] = useState(0);
+  const [translateY, setTranslateY] = useState(9999);
+  const initialized = useRef(false);
   const dragStartY = useRef(0);
   const dragStartTranslate = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
 
   useEffect(() => {
     setTranslateY(getTranslateForState("peek"));
+    initialized.current = true;
   }, [getTranslateForState]);
 
   const handleTouchStart = useCallback(
@@ -92,7 +94,7 @@ export function BottomSheet({ children, header, spotCount = 0 }: BottomSheetProp
     <div
       ref={sheetRef}
       className={`md:hidden fixed inset-x-0 bottom-0 z-20 bg-app border-t border-border rounded-t-2xl flex flex-col
-        ${dragging ? "" : "transition-transform duration-300 ease-out"}`}
+        ${dragging || !initialized.current ? "" : "transition-transform duration-300 ease-out"}`}
       style={{
         transform: `translateY(${translateY}px)`,
         height: "90vh",

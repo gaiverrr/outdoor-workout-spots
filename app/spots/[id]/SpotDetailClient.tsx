@@ -23,7 +23,8 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
   useEffect(() => {
     if (!isTWA) return;
     const handleBack = () => {
-      if (window.history.length > 1) {
+      const isInternalNav = document.referrer && document.referrer.includes(window.location.host);
+      if (isInternalNav) {
         router.back();
       } else {
         router.push("/");
@@ -49,7 +50,8 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
         <header className="sticky top-0 z-10 bg-app/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => {
-              if (window.history.length > 1) {
+              const isInternalNav = document.referrer && document.referrer.includes(window.location.host);
+              if (isInternalNav) {
                 router.back();
               } else {
                 router.push("/");
@@ -66,7 +68,10 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
           <button
             onClick={() => {
               if (navigator.share) {
-                navigator.share({ title: spot.title, url: window.location.href });
+                navigator.share({ title: spot.title, url: window.location.href })
+                  .catch((err) => {
+                    if (err?.name !== "AbortError") console.error("Share failed:", err);
+                  });
               } else {
                 navigator.clipboard.writeText(window.location.href);
               }
@@ -90,22 +95,6 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
             onError={() => setImageError((prev) => ({ ...prev, [0]: true }))}
             priority
           />
-        </div>
-      ) : spot.lat != null && spot.lon != null ? (
-        <div className="w-full aspect-video">
-          <Map
-            initialViewState={{ longitude: spot.lon, latitude: spot.lat, zoom: 14 }}
-            style={{ width: "100%", height: "100%" }}
-            mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-            attributionControl={false}
-            interactive={false}
-          >
-            <Marker longitude={spot.lon} latitude={spot.lat} anchor="center">
-              <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center border-2 border-white">
-                <span className="text-white text-xs">💪</span>
-              </div>
-            </Marker>
-          </Map>
         </div>
       ) : null}
 

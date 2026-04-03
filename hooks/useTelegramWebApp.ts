@@ -33,6 +33,7 @@ interface UseTelegramWebAppReturn {
 export function useTelegramWebApp(): UseTelegramWebAppReturn {
   const [isTWA, setIsTWA] = useState(false);
   const webAppRef = useRef<TelegramWebApp | null>(null);
+  const callbackRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const webApp = window.Telegram?.WebApp;
@@ -49,6 +50,10 @@ export function useTelegramWebApp(): UseTelegramWebAppReturn {
   const showBackButton = useCallback((callback: () => void) => {
     const webApp = webAppRef.current;
     if (!webApp) return;
+    if (callbackRef.current) {
+      webApp.BackButton.offClick(callbackRef.current);
+    }
+    callbackRef.current = callback;
     webApp.BackButton.onClick(callback);
     webApp.BackButton.show();
   }, []);
@@ -56,6 +61,10 @@ export function useTelegramWebApp(): UseTelegramWebAppReturn {
   const hideBackButton = useCallback(() => {
     const webApp = webAppRef.current;
     if (!webApp) return;
+    if (callbackRef.current) {
+      webApp.BackButton.offClick(callbackRef.current);
+      callbackRef.current = null;
+    }
     webApp.BackButton.hide();
   }, []);
 
