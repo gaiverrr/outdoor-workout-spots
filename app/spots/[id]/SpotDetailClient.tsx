@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Map, { Marker } from "react-map-gl/maplibre";
 import type { CalisthenicsSpot } from "@/data/calisthenics-spots.types";
 import { useUserLocation } from "@/hooks/useUserLocation";
+import { useTelegramWebApp } from "@/hooks/useTelegramWebApp";
 import { getDistanceKm, formatDistance } from "@/lib/distance";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -17,6 +18,20 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
   const router = useRouter();
   const [imageError, setImageError] = useState<Record<number, boolean>>({});
   const { location: userLocation } = useUserLocation();
+  const { isTWA, showBackButton, hideBackButton } = useTelegramWebApp();
+
+  useEffect(() => {
+    if (!isTWA) return;
+    const handleBack = () => {
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push("/");
+      }
+    };
+    showBackButton(handleBack);
+    return () => hideBackButton();
+  }, [isTWA, showBackButton, hideBackButton, router]);
 
   const distance =
     userLocation && spot.lat != null && spot.lon != null
@@ -30,37 +45,39 @@ export function SpotDetailClient({ spot }: SpotDetailClientProps) {
   return (
     <div className="min-h-dvh bg-app">
       {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-app/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => {
-            if (window.history.length > 1) {
-              router.back();
-            } else {
-              router.push("/");
-            }
-          }}
-          className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
-          data-testid="back-button"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </button>
-        <button
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({ title: spot.title, url: window.location.href });
-            } else {
-              navigator.clipboard.writeText(window.location.href);
-            }
-          }}
-          className="text-sm text-text-secondary hover:text-text-primary transition-colors"
-          data-testid="share-button"
-        >
-          Share
-        </button>
-      </header>
+      {!isTWA && (
+        <header className="sticky top-0 z-10 bg-app/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
+            className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
+            data-testid="back-button"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <button
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: spot.title, url: window.location.href });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+              }
+            }}
+            className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+            data-testid="share-button"
+          >
+            Share
+          </button>
+        </header>
+      )}
 
       {/* Hero image */}
       {images.length > 0 && !imageError[0] ? (
