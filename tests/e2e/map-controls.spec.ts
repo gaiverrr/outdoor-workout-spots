@@ -17,23 +17,11 @@ test.describe("Map Controls", () => {
     await expect(nav).not.toBeVisible();
   });
 
-  test("locate-me button visible when geolocation granted", async ({ page, context }) => {
-    await context.grantPermissions(["geolocation"]);
-    await context.setGeolocation({ latitude: 52.52, longitude: 13.405 });
-
+  test("GeolocateControl button is visible on map", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("spots-map").locator("canvas").waitFor({ timeout: 15000 });
 
-    const locateBtn = page.getByTestId("locate-me-map");
-    await expect(locateBtn).toBeVisible({ timeout: 10000 });
-  });
-
-  test("locate-me button not visible without geolocation", async ({ page }) => {
-    await page.goto("/");
-    await page.getByTestId("spots-map").locator("canvas").waitFor({ timeout: 15000 });
-    await page.waitForTimeout(2000);
-
-    const locateBtn = page.getByTestId("locate-me-map");
-    await expect(locateBtn).not.toBeVisible();
+    const geolocateBtn = page.locator(".maplibregl-ctrl-geolocate");
+    await expect(geolocateBtn).toBeVisible();
   });
 });

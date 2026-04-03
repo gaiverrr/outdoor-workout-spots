@@ -5,6 +5,7 @@ import Map, {
   Marker,
   Popup,
   NavigationControl,
+  GeolocateControl,
   type MapRef,
 } from "react-map-gl/maplibre";
 import Link from "next/link";
@@ -226,6 +227,7 @@ export function SpotsMap({
         onLoad={handleLoad}
       >
         {!isMobile && <NavigationControl position="top-right" />}
+        <GeolocateControl position="bottom-right" trackUserLocation />
 
         {userLocation && (
           <Marker longitude={userLocation.lon} latitude={userLocation.lat} anchor="center">
@@ -336,31 +338,6 @@ export function SpotsMap({
           </Popup>
         )}
       </Map>
-
-      {/* Locate me button */}
-      {userLocation && (
-        <button
-          onClick={() => {
-            if (mapRef.current) {
-              mapRef.current.flyTo({
-                center: [userLocation.lon, userLocation.lat],
-                zoom: 12,
-                duration: 1000,
-              });
-            }
-          }}
-          className="absolute bottom-10 right-3 w-10 h-10 bg-surface border border-border rounded-lg
-            flex items-center justify-center shadow-md
-            hover:bg-elevated transition-colors duration-150"
-          aria-label="Go to my location"
-          data-testid="locate-me-map"
-        >
-          <svg className="w-5 h-5 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
-          </svg>
-        </button>
-      )}
 
       <div className="absolute bottom-2 right-2 text-[10px] text-text-dim bg-black/50 px-1.5 py-0.5 rounded">
         © OpenStreetMap | CARTO
