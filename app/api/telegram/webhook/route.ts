@@ -1,6 +1,6 @@
 import { Bot, webhookCallback } from "grammy";
 import { db } from "@/lib/db";
-import { formatDistance } from "@/lib/distance";
+import { formatDistance, getDistanceKm } from "@/lib/distance";
 
 const APP_URL = process.env.APP_URL || "https://workoutspots.app";
 
@@ -21,24 +21,6 @@ interface SpotRow {
   address: string | null;
   equipment: string | null;
   rating: number | null;
-}
-
-function getDistanceKm(
-  from: { lat: number; lon: number },
-  to: { lat: number; lon: number }
-): number {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(to.lat - from.lat);
-  const dLon = toRad(to.lon - from.lon);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(from.lat)) *
-      Math.cos(toRad(to.lat)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return Math.round(R * c * 10) / 10;
 }
 
 function createBot(token: string): Bot {

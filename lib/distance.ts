@@ -1,4 +1,7 @@
-import type { Coordinates } from "@/hooks/useUserLocation";
+export interface Coordinates {
+  lat: number;
+  lon: number;
+}
 
 /**
  * Calculate the distance between two points using the Haversine formula

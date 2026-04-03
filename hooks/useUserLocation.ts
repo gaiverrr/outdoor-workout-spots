@@ -1,11 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { Coordinates } from "@/lib/distance";
 
-export interface Coordinates {
-  lat: number;
-  lon: number;
-}
+export type { Coordinates };
 
 export type LocationStatus = "idle" | "loading" | "granted" | "denied" | "error";
 
