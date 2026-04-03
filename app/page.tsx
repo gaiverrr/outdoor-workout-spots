@@ -13,12 +13,14 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { SpotPreview } from "@/components/SpotPreview";
 import { useTelegramWebApp } from "@/hooks/useTelegramWebApp";
 
+const EMPTY_FILTERS = { hasBars: false, hasRings: false, hasTrack: false };
+
 function HomeContent() {
   const { isTWA } = useTelegramWebApp();
   const { initialState: urlState, updateUrl } = useUrlState();
 
   const [searchQuery, setSearchQuery] = useState(urlState.searchQuery || "");
-  const filters = { hasBars: false, hasRings: false, hasTrack: false };
+  const filters = EMPTY_FILTERS;
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(
     urlState.selectedSpotId || null
   );

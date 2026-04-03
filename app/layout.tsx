@@ -58,7 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} h-full`}>
       <body className="antialiased h-full">
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <Providers>
           <RegisterServiceWorker />
           <main className="h-dvh">{children}</main>

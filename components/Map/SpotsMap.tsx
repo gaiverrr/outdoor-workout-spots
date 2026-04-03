@@ -34,15 +34,8 @@ export interface SpotsMapProps {
 }
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isMobile;
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 767px)").matches;
 }
 
 const DEFAULT_CENTER: [number, number] = [0, 20];
