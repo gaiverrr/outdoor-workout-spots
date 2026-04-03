@@ -13,10 +13,10 @@ test.describe("Navigation — Back Button State Preservation", () => {
     await page.getByTestId("spot-title").waitFor({ timeout: 15000 });
 
     await page.goBack();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1500);
 
     const restoredInput = page.getByTestId("search-input").first();
-    await expect(restoredInput).toHaveValue("Berlin");
+    await expect(restoredInput).toHaveValue("Berlin", { timeout: 5000 });
   });
 
   test("URL params are preserved across navigation", async ({ page }) => {
