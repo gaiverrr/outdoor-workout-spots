@@ -4,13 +4,11 @@ import { useState, useCallback, useRef, useEffect, Suspense } from "react";
 import { SpotsMap, type MapBounds } from "@/components/Map/SpotsMap";
 import { SpotsList } from "@/components/Spots/SpotsList";
 import { SearchBar } from "@/components/Search/SearchBar";
-import { QuickFilters } from "@/components/Search/QuickFilters";
 import { useSpotsInfinite } from "@/hooks/useSpotsInfinite";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useSpotsWithDistance } from "@/hooks/useSpotsWithDistance";
 import { useFilteredSpots } from "@/hooks/useFilteredSpots";
 import { useUrlState } from "@/hooks/useUrlState";
-import type { FilterOptions } from "@/hooks/useFilteredSpots";
 import { BottomSheet } from "@/components/BottomSheet";
 import { SpotPreview } from "@/components/SpotPreview";
 
@@ -18,9 +16,7 @@ function HomeContent() {
   const { initialState: urlState, updateUrl } = useUrlState();
 
   const [searchQuery, setSearchQuery] = useState(urlState.searchQuery || "");
-  const [filters, setFilters] = useState<FilterOptions>(
-    urlState.filters || { hasBars: false, hasRings: false, hasTrack: false }
-  );
+  const filters = { hasBars: false, hasRings: false, hasTrack: false };
   const [selectedSpotId, setSelectedSpotId] = useState<number | null>(
     urlState.selectedSpotId || null
   );
@@ -100,7 +96,6 @@ function HomeContent() {
           <div className="w-80 flex-shrink-0">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
-          <QuickFilters filters={filters} onChange={setFilters} />
           <div className="ml-auto flex items-center gap-3">
             {locationStatus === "idle" && (
               <button
@@ -173,8 +168,7 @@ function HomeContent() {
           {/* Mobile: search overlay on top of map */}
           <div className="md:hidden absolute top-0 left-0 right-0 z-10 p-3 space-y-2">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            <QuickFilters filters={filters} onChange={setFilters} />
-          </div>
+            </div>
 
           {/* Mobile spot preview */}
           {selectedSpotId && (() => {
