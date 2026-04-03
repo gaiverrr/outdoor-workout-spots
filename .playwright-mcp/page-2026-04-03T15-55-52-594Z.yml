@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - img [ref=e8]
+          - textbox "Search by city or address..." [ref=e10]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Locating...
+          - generic [ref=e13]: 0 spots
+      - generic [ref=e14]:
+        - complementary [ref=e15]:
+          - heading "All Spots" [level=2] [ref=e17]
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - region "Map" [ref=e29]
+            - generic:
+              - generic [ref=e30]:
+                - button "Zoom in" [ref=e31] [cursor=pointer]
+                - button "Zoom out" [ref=e33] [cursor=pointer]
+                - button "Reset bearing to north" [ref=e35]
+              - button "Find my location" [ref=e38] [cursor=pointer]
+          - generic [ref=e41]: © OpenStreetMap | CARTO
+  - alert [ref=e42]

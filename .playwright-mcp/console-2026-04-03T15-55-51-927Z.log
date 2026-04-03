@@ -1,0 +1,33 @@
+[     259ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ https://telegram.org/js/telegram-web-app.js:134
+[     259ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ https://telegram.org/js/telegram-web-app.js:134
+[     259ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ https://telegram.org/js/telegram-web-app.js:134
+[     259ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ https://telegram.org/js/telegram-web-app.js:134
+[     259ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[     259ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[  815860ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ https://telegram.org/js/telegram-web-app.js:134
+[  815860ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ https://telegram.org/js/telegram-web-app.js:134
+[  815860ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ https://telegram.org/js/telegram-web-app.js:134
+[  815860ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ https://telegram.org/js/telegram-web-app.js:134
+[  815860ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[  815860ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[  817234ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ https://telegram.org/js/telegram-web-app.js:134
+[  817234ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ https://telegram.org/js/telegram-web-app.js:134
+[  817234ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ https://telegram.org/js/telegram-web-app.js:134
+[  817234ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ https://telegram.org/js/telegram-web-app.js:134
+[  817234ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[  817234ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1199099ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ https://telegram.org/js/telegram-web-app.js:134
+[ 1199099ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ https://telegram.org/js/telegram-web-app.js:134
+[ 1199099ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1199099ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1199099ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1199099ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200308ms] [LOG] [Telegram.WebView] > postEvent web_app_set_header_color {color_key: bg_color} @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200308ms] [LOG] [Telegram.WebView] > postEvent web_app_set_bottom_bar_color {color: #ffffff} @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200308ms] [LOG] [Telegram.WebView] > postEvent web_app_request_theme  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200308ms] [LOG] [Telegram.WebView] > postEvent web_app_request_viewport  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200308ms] [LOG] [Telegram.WebView] > postEvent web_app_request_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200308ms] [LOG] [Telegram.WebView] > postEvent web_app_request_content_safe_area  @ https://telegram.org/js/telegram-web-app.js:134
+[ 1200362ms] [WARNING] Geolocation permission has been blocked as the user has ignored the permission prompt several times. This can be reset in Page Info which can be accessed by clicking the tune icon next to the URL. See https://www.chromestatus.com/feature/6443143280984064 for more information. @ https://outdoor-workout-spots.vercel.app/?minLat=-47.675883&maxLat=68.506433&minLon=-34.541016&maxLon=34.541016&lat=20.000000&lng=0.000000&z=2.0:0
+[ 1200569ms] [WARNING] Geolocation support is not available so the GeolocateControl will be disabled. @ https://outdoor-workout-spots.vercel.app/_next/static/chunks/a0f3802c9615d932.js?dpl=dpl_DcFikZ4EDgRTs1G3AJ8CWW7Hi7wT:0
+[ 1201364ms] [WARNING] Geolocation permission has been blocked as the user has ignored the permission prompt several times. This can be reset in Page Info which can be accessed by clicking the tune icon next to the URL. See https://www.chromestatus.com/feature/6443143280984064 for more information. @ https://outdoor-workout-spots.vercel.app/?minLat=-47.675883&maxLat=68.506433&minLon=-34.541016&maxLon=34.541016&lat=20.000000&lng=0.000000&z=2.0:0
