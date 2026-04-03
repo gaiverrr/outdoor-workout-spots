@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, {
   Marker,
   Popup,
@@ -88,8 +88,27 @@ export function SpotsMap({
 }: SpotsMapProps) {
   const mapRef = useRef<MapRef>(null);
   const hasFittedBounds = useRef(false);
+  const hasFlewToUser = useRef(false);
   const [currentZoom, setCurrentZoom] = useState(DEFAULT_ZOOM);
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
+
+  // Fly to user location when it becomes available (and no URL state to restore)
+  const hasUrlState = !!(initialCenter || initialBounds);
+  useEffect(() => {
+    if (
+      userLocation &&
+      mapRef.current &&
+      !hasFlewToUser.current &&
+      !hasUrlState
+    ) {
+      hasFlewToUser.current = true;
+      mapRef.current.flyTo({
+        center: [userLocation.lon, userLocation.lat],
+        zoom: 12,
+        duration: 1500,
+      });
+    }
+  }, [userLocation, hasUrlState]);
 
   const { points, expandCluster } = useMapClusters({
     spots,
